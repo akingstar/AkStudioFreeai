@@ -178,3 +178,159 @@ document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', (
 }))
 
 $('backCreate').addEventListener('click', () => document.querySelector('[data-page="create"]').click())
+
+// ===== AKSTUDIO STAGE 3: MY LIBRARY =====
+const AK_KEY = 'akstudiofreeai_projects_v1';
+
+function akGetProjects() {
+  try {
+    const data = JSON.parse(localStorage.getItem(AK_KEY) || '[]');
+    return Array.isArray(data) ? data : [];
+  } catch { return []; }
+}
+
+function akStoreProjects(data) {
+  localStorage.setItem(AK_KEY, JSON.stringify(data));
+}
+
+function akSafe(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+const akSave = document.createElement('button');
+akSave.id = 'akSaveProject';
+akSave.className = 'secondary ak-save';
+akSave.textContent = '＋ Save Project to My Library';
+akSave.type = 'button';
+$('generate').insertAdjacentElement('afterend', akSave);
+
+akSave.addEventListener('click', () => {
+  const project = {
+    id: Date.now().toString() + Math.random().toString(16).slice(2),
+    title: $('songTitle').value.trim() || 'Untitled Project',
+    mode,
+    lyrics: $('lyrics').value,
+    prompt: $('prompt').value,
+    genre: $('genre').value,
+    mood: $('mood').value,
+    language: $('language').value,
+    duration: $('duration').value,
+    voice: $('voice').value,
+    singing: $('singing').value,
+    intensity: $('intensity').value,
+    pitch: $('pitch').value,
+    emotion: $('emotion').value,
+    date: new Date().toISOString()
+  };
+
+  if (!project.prompt.trim() && !project.lyrics.trim()) {
+    notice.textContent = 'Pehle lyrics ya music description likho.';
+    return;
+  }
+
+  try {
+    const projects = akGetProjects();
+    projects.unshift(project);
+    akStoreProjects(projects);
+    notice.textContent = '✓ Project successfully My Library mein save ho gaya!';
+    akSave.textContent = '✓ Project Saved';
+    setTimeout(() => akSave.textContent = '＋ Save Project to My Library', 1800);
+  } catch {
+    notice.textContent = 'Storage full hai. Kuch browser storage clear karo.';
+  }
+});
+
+function akRenderLibrary() {
+  const panel = $('otherPage').querySelector('.empty-state');
+  const projects = akGetProjects();
+
+  panel.classList.add('ak-library-panel');
+
+  if (!projects.length) {
+    panel.innerHTML = `
+      <div class="empty-icon">♫</div>
+      <h2>Your Library is Empty</h2>
+      <p>Create Music page par apna project save karo. Woh yahan dikhega.</p>
+      <button class="secondary" id="akBack">← Create Music</button>`;
+    $('akBack').onclick = () => document.querySelector('[data-page="create"]').click();
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="ak-library-heading">
+      <div><h2>My Projects</h2><p>${projects.length} saved projects</p></div>
+      <button class="secondary" id="akExport">↓ Export Backup</button>
+    </div>
+    <div class="ak-project-list">
+      ${projects.map(p => `
+        <article class="ak-project">
+          <div class="ak-project-icon">♫</div>
+          <div class="ak-project-info">
+            <b>${akSafe(p.title)}</b>
+            <small>${akSafe(p.genre)} · ${akSafe(p.language)} · ${akSafe(p.mood)}</small>
+            <small>${new Date(p.date).toLocaleString()}</small>
+          </div>
+          <button class="secondary ak-open" data-id="${akSafe(p.id)}">Open</button>
+          <button class="ak-delete" data-id="${akSafe(p.id)}">✕</button>
+        </article>`).join('')}
+    </div>
+    <p class="ak-local-note">Saved on this device/browser. Cloud sync is not connected.</p>`;
+
+  $('akExport').onclick = () => {
+    const blob = new Blob([JSON.stringify(projects, null, 2)], {
+      type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AkStudioFreeai-Library-Backup.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+}
+
+$('otherPage').querySelector('.empty-state').addEventListener('click', e => {
+  const open = e.target.closest('.ak-open');
+  const remove = e.target.closest('.ak-delete');
+
+  if (open) {
+    const p = akGetProjects().find(x => x.id === open.dataset.id);
+    if (!p) return;
+
+    $('songTitle').value = p.title || '';
+    $('lyrics').value = p.lyrics || '';
+    $('prompt').value = p.prompt || '';
+
+    ['genre','mood','language','duration','voice','singing',
+     'intensity','pitch','emotion'].forEach(key => {
+      if (p[key] !== undefined) $(key).value = p[key];
+    });
+
+    mode = p.mode === 'instrumental' ? 'instrumental' : 'custom';
+    document.querySelectorAll('.mode').forEach(b =>
+      b.classList.toggle('active', b.dataset.mode === mode)
+    );
+
+    $('lyricsArea').classList.toggle('hidden', mode === 'instrumental');
+    $('count').textContent = $('lyrics').value.length + ' characters';
+    $('intensityVal').textContent = $('intensity').value + '%';
+    $('pitchVal').textContent = $('pitch').value;
+    $('emotionVal').textContent = $('emotion').value + '%';
+    $('previewTitle').textContent = p.title;
+    notice.textContent = 'Project opened successfully.';
+
+    document.querySelector('[data-page="create"]').click();
+  }
+
+  if (remove) {
+    if (!confirm('Delete this project permanently?')) return;
+    akStoreProjects(akGetProjects().filter(p => p.id !== remove.dataset.id));
+    akRenderLibrary();
+  }
+});
+
+document.querySelector('[data-page="library"]').addEventListener(
+  'click', akRenderLibrary
+);

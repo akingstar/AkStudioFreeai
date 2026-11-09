@@ -105,3 +105,24 @@ footer span{padding:0 5px}
 .secondary{background:#eee;border:0;border-radius:6px;padding:11px 16px;font-size:11px;font-weight:700;margin-top:15px}
 @media(max-width:1050px){.studio-grid{grid-template-columns:1fr}.right-column{grid-template-columns:1fr 1fr}.artwork{height:190px}}
 @media(max-width:700px){.sidebar{transform:translateX(-100%);transition:transform .2s;width:245px;box-shadow:15px 0 40px #0008}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.mobile-menu{display:block}.topbar{height:58px;padding:0 18px;gap:12px}.breadcrumb{margin-right:auto}.top-right{gap:9px}.page{padding:30px 15px 15px}.hero h1{font-size:44px}.hero{margin-bottom:26px}.studio-grid{gap:14px}.panel{padding:17px}.right-column{grid-template-columns:1fr}.artwork{height:220px}.settings-grid{gap:12px}.footer-right{float:none;display:block;margin-top:10px}}
+
+/* AKSTUDIO STAGE 3 */
+.ak-save{width:100%;margin-top:10px;min-height:44px}
+.ak-library-panel{text-align:left;padding:25px}
+.ak-library-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+.ak-library-heading h2{margin:0 0 5px}
+.ak-library-heading p,.ak-local-note{color:#999;font-size:12px}
+.ak-project-list{display:grid;gap:12px}
+.ak-project{display:flex;align-items:center;gap:12px;padding:14px;background:#101010;border:1px solid #303030;border-radius:13px}
+.ak-project-icon{width:44px;height:44px;display:grid;place-items:center;background:#222;border-radius:10px;font-size:22px}
+.ak-project-info{flex:1;min-width:0;display:grid;gap:5px}
+.ak-project-info b{overflow-wrap:anywhere}
+.ak-project-info small{font-size:11px;color:#999}
+.ak-delete{height:36px;width:36px;border:1px solid #444;border-radius:8px;background:#171717;color:white;cursor:pointer}
+.ak-local-note{margin-top:18px}
+@media(max-width:600px){
+ .ak-library-panel{padding:16px}
+ .ak-project{flex-wrap:wrap}
+ .ak-project-info{min-width:calc(100% - 65px)}
+ .ak-library-heading{align-items:flex-start;flex-direction:column}
+}
