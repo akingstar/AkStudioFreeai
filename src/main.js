@@ -342,3 +342,5 @@ import './audio-effects.js';
 import './stem-tools.js';
 
 import './user-profile.js';
+
+import './cloud-sync.js';
