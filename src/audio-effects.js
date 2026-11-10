@@ -1,4 +1,5 @@
 (() => {
+  try {
   if (document.getElementById('ak-effects-launch')) return;
 
   const style = document.createElement('style');
@@ -249,4 +250,7 @@
       button.disabled = false;
     }
   };
+  } catch (error) {
+    console.error('[AkStudioFreeai] Audio Effects initialization failed:', error);
+  }
 })();
