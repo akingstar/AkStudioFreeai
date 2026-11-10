@@ -337,7 +337,7 @@ document.querySelector('[data-page="library"]').addEventListener(
 
 // TEMP TEST: song-mixer disabled
 
-// TEMP TEST: audio-effects disabled
+import './audio-effects.js';
 
 // TEMP TEST: stem-tools disabled
 
