@@ -335,7 +335,7 @@ document.querySelector('[data-page="library"]').addEventListener(
   'click', akRenderLibrary
 );
 
-// TEMP TEST: song-mixer disabled
+import './song-mixer.js';
 
 // TEMP TEST: audio-effects disabled
 
