@@ -336,3 +336,5 @@ document.querySelector('[data-page="library"]').addEventListener(
 );
 
 import './song-mixer.js';
+
+import './audio-effects.js';
