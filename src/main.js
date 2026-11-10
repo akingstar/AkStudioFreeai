@@ -335,12 +335,12 @@ document.querySelector('[data-page="library"]').addEventListener(
   'click', akRenderLibrary
 );
 
-import './song-mixer.js';
+// TEMP TEST: song-mixer disabled
 
-import './audio-effects.js';
+// TEMP TEST: audio-effects disabled
 
-import './stem-tools.js';
+// TEMP TEST: stem-tools disabled
 
-import './user-profile.js';
+// TEMP TEST: user-profile disabled
 
 // TEMP TEST: import './cloud-sync.js';
