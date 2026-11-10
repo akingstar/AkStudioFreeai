@@ -340,3 +340,5 @@ import './song-mixer.js';
 import './audio-effects.js';
 
 import './stem-tools.js';
+
+import './user-profile.js';
