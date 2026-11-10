@@ -341,6 +341,6 @@ document.querySelector('[data-page="library"]').addEventListener(
 
 import './stem-tools.js';
 
-// TEMP TEST: user-profile disabled
+import './user-profile.js';
 
 // TEMP TEST: import './cloud-sync.js';
