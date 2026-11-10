@@ -343,4 +343,4 @@ import './stem-tools.js';
 
 import './user-profile.js';
 
-// TEMP TEST: import './cloud-sync.js';
+import './cloud-sync.js';
