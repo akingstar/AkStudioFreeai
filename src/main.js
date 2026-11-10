@@ -334,3 +334,5 @@ $('otherPage').querySelector('.empty-state').addEventListener('click', e => {
 document.querySelector('[data-page="library"]').addEventListener(
   'click', akRenderLibrary
 );
+
+import './song-mixer.js';
