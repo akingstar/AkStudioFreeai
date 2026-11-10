@@ -339,7 +339,7 @@ document.querySelector('[data-page="library"]').addEventListener(
 
 // TEMP TEST: audio-effects disabled
 
-// TEMP TEST: stem-tools disabled
+import './stem-tools.js';
 
 // TEMP TEST: user-profile disabled
 
