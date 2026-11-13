@@ -137,3 +137,32 @@ footer span{padding:0 5px}
 .ak-control-actions .secondary{margin:0;min-height:58px;text-align:left;background:#202020;color:#fff;border:1px solid #3a3a3a}
 .ak-control-actions .secondary:hover{background:#303030;border-color:#888}
 .ak-control-note{margin-top:26px;padding-top:15px;border-top:1px solid #303030}
+
+/* Mastering Studio 2.0 */
+#ak-mastering-modal{display:none;position:fixed;inset:0;z-index:99999;background:#080808ee;overflow:auto;padding:20px;align-items:center;justify-content:center}
+#ak-mastering-modal.open{display:flex}
+.ak-master-card{width:min(900px,100%);max-height:94vh;overflow:auto;background:#151515;border:1px solid #393939;border-radius:18px;padding:24px;color:#fff}
+.ak-master-top{display:flex;justify-content:space-between;gap:15px}
+.ak-master-top small{letter-spacing:2px;color:#aaa}
+.ak-master-top h2{font-size:28px;margin:10px 0}
+.ak-master-top p,.ak-master-card p{color:#aaa;font-size:13px}
+#ak-master-close{background:#292929;color:white;border:0;border-radius:8px;width:38px;height:38px}
+.ak-master-upload{display:flex;flex-direction:column;gap:8px;padding:22px;margin:20px 0;background:#202020;border:1px dashed #666;border-radius:12px;cursor:pointer}
+.ak-master-upload input{max-width:100%}
+.ak-master-upload span{font-size:12px;color:#aaa}
+.ak-master-eq h3{font-size:16px}
+.ak-master-bands{display:grid;grid-template-columns:repeat(10,minmax(38px,1fr));gap:8px;overflow-x:auto;padding:12px 0}
+.ak-master-bands label{display:flex;align-items:center;flex-direction:column;gap:10px;font-size:10px;color:#bbb}
+.ak-master-bands input{writing-mode:vertical-lr;direction:rtl;appearance:slider-vertical;height:105px;width:22px}
+.ak-master-bands output{font-size:10px}
+.ak-master-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+.ak-master-controls label{display:grid;gap:9px;font-size:13px;color:#ddd}
+.ak-master-controls output{color:#aaa}
+.ak-master-controls input{width:100%;accent-color:#ddd}
+.ak-master-actions{display:flex;flex-wrap:wrap;gap:10px}
+.ak-master-actions button{padding:13px 18px;border-radius:9px;background:#292929;color:white;border:1px solid #555}
+#ak-master-render{background:#eee;color:#111;font-weight:700}
+#ak-master-render:disabled{opacity:.5}
+#ak-master-status{padding:12px 0;min-height:40px}
+#ak-master-preview{width:100%;margin-top:10px}
+@media(max-width:600px){#ak-mastering-modal{padding:8px}.ak-master-card{padding:15px}.ak-master-bands{grid-template-columns:repeat(10,48px)}}
