@@ -175,6 +175,9 @@ document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', (
   $('otherText').textContent = pages[page][2]
   $('emptyTitle').textContent = page === 'library' ? 'Your music library is waiting' : page === 'voices' ? 'Your voice studio is waiting' : 'Your audio tools are waiting'
   $('sidebar').classList.remove('open')
+  if (page === 'voices' || page === 'tools') {
+    window.akRenderStudioPage?.(page)
+  }
 }))
 
 $('backCreate').addEventListener('click', () => document.querySelector('[data-page="create"]').click())

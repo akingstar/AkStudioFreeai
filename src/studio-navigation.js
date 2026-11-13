@@ -76,9 +76,7 @@
       `;
     }
 
-    document.querySelectorAll('.nav[data-page]').forEach(button => {
-      button.addEventListener('click', () => showPage(button.dataset.page));
-    });
+    window.akRenderStudioPage = showPage;
 
     panel.addEventListener('click', event => {
       const button = event.target.closest('.ak-pro-tool');
