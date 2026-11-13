@@ -1,7 +1,24 @@
 (() => {
   function init() {
     const panel = document.querySelector('#otherPage .empty-state');
-    if (!panel || panel.dataset.akProNavigation === '1') return;
+    if (!panel) {
+      if (!window.akStudioNavObserver) {
+        const observer = new MutationObserver(() => {
+          if (document.querySelector('#otherPage .empty-state')) {
+            observer.disconnect();
+            delete window.akStudioNavObserver;
+            init();
+          }
+        });
+        window.akStudioNavObserver = observer;
+        observer.observe(document.documentElement, {
+          childList: true,
+          subtree: true
+        });
+      }
+      return;
+    }
+    if (panel.dataset.akProNavigation === '1') return;
     panel.dataset.akProNavigation = '1';
 
     const sections = {
