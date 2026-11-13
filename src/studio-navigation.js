@@ -19,6 +19,7 @@
           ['ak-mixer-launch', '🎚 Song Mixer'],
           ['ak-effects-launch', '🎛 Audio Effects & Mastering'],
           ['ak-stem-launch', '🎤 Vocal & Center Processing'],
+          ['ak-ultimate-launch', '🎚 Ultimate Music Studio'],
           ['ak-mastering-launch', '🎚 Mastering Studio 2.0']
         ]
       }

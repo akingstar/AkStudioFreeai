@@ -166,3 +166,29 @@ footer span{padding:0 5px}
 #ak-master-status{padding:12px 0;min-height:40px}
 #ak-master-preview{width:100%;margin-top:10px}
 @media(max-width:600px){#ak-mastering-modal{padding:8px}.ak-master-card{padding:15px}.ak-master-bands{grid-template-columns:repeat(10,48px)}}
+
+/* Ultimate Studio */
+#ak-ultimate-modal{display:none;position:fixed;z-index:100000;inset:0;overflow:auto;background:#080808ed;padding:12px;align-items:center;justify-content:center}
+#ak-ultimate-modal.open{display:flex}
+.ak-ultimate-card{width:min(950px,100%);max-height:96vh;overflow:auto;background:#151515;color:#fff;border:1px solid #444;border-radius:16px;padding:22px}
+.ak-ultimate-card header{display:flex;justify-content:space-between;gap:12px}
+.ak-ultimate-card header small{letter-spacing:2px;color:#aaa}
+.ak-ultimate-card h2{font-size:27px;margin:10px 0}
+.ak-ultimate-card p{color:#aaa;font-size:13px}
+#ak-u-close,.ak-u-toolbar button,.ak-u-track button{background:#292929;color:white;border:1px solid #555;border-radius:8px;padding:9px}
+.ak-u-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.ak-u-upload{display:inline-flex;gap:10px;align-items:center;background:#eee;color:#111;padding:12px 16px;border-radius:8px;cursor:pointer;font-weight:700}
+.ak-u-upload input{max-width:190px}
+.ak-u-empty{padding:24px;text-align:center;border:1px dashed #555;border-radius:10px}
+.ak-u-track{padding:14px;margin:10px 0;background:#202020;border:1px solid #383838;border-radius:10px}
+.ak-u-track-head{display:flex;justify-content:space-between;gap:10px;overflow-wrap:anywhere}
+.ak-u-track-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.ak-u-track-controls label,.ak-u-controls label{display:grid;gap:7px;color:#bbb;font-size:12px}
+.ak-u-track-controls input[type=range],.ak-u-controls input{width:100%;accent-color:#ddd}
+.ak-ultimate-card h3{margin-top:25px}
+.ak-u-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.ak-u-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.ak-u-actions button{padding:13px 17px;border:0;border-radius:8px;background:#eee;color:#111;font-weight:700}
+.ak-u-actions button:disabled{opacity:.5}
+.ak-u-disclaimer{border-top:1px solid #333;padding-top:12px;margin-top:15px}
+@media(max-width:600px){.ak-ultimate-card{padding:14px}.ak-u-track-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}

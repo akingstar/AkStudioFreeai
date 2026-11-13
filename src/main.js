@@ -350,3 +350,5 @@ import('./ak-backend.js').then(() => import('./ak-pro.js'))
 import './studio-navigation.js';
 
 import './mastering-pro.js';
+
+import './ultimate-studio.js';
