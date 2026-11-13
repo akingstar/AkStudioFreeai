@@ -346,3 +346,5 @@ import './user-profile.js';
 import './cloud-sync.js';
 
 import('./ak-backend.js').then(() => import('./ak-pro.js'))
+
+import './studio-navigation.js';

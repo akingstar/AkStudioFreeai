@@ -126,3 +126,14 @@ footer span{padding:0 5px}
  .ak-project-info{min-width:calc(100% - 65px)}
  .ak-library-heading{align-items:flex-start;flex-direction:column}
 }
+
+/* AKSTUDIO: functional workspace navigation */
+.ak-control-panel{text-align:left;min-height:300px}
+.ak-control-heading{max-width:680px}
+.ak-control-kicker{font-size:10px;letter-spacing:2px;color:#999;font-weight:700}
+.ak-control-heading h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(24px,4vw,36px);margin:16px 0 9px}
+.ak-control-heading p,.ak-control-note{color:#999;font-size:13px;line-height:1.7}
+.ak-control-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:28px}
+.ak-control-actions .secondary{margin:0;min-height:58px;text-align:left;background:#202020;color:#fff;border:1px solid #3a3a3a}
+.ak-control-actions .secondary:hover{background:#303030;border-color:#888}
+.ak-control-note{margin-top:26px;padding-top:15px;border-top:1px solid #303030}
