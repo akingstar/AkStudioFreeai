@@ -356,3 +356,5 @@ import './ultimate-studio.js';
 import './multilingual-pro.js';
 
 import './songwriting-pro.js';
+
+import './suno-2026-hub.js';
