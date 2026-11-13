@@ -1,55 +1,77 @@
 (() => {
   function init() {
     const panel = document.querySelector('#otherPage .empty-state');
-    if (!panel) return;
+    if (!panel || panel.dataset.akProNavigation === '1') return;
+    panel.dataset.akProNavigation = '1';
 
-    const tools = {
+    const sections = {
       voices: {
-        title: 'Personal AI Voice Studio',
-        description: 'Record your own voice, prepare a dataset and open your voice-training workflows.',
-        actions: [
-          ['ak-voice-launch', '🎙 Record Voice Dataset'],
-          ['ak-voice-model-launch', '🎵 Speaking & Singing Voice Training']
+        title: 'Voice Studio',
+        description: 'Record, organize and prepare your voice for speaking and singing workflows.',
+        groups: [
+          { title: 'Voice Recording', items: [
+            ['ak-voice-launch', '🎙 Record Voice Dataset', 'Record and manage voice samples']
+          ]},
+          { title: 'Voice Model Training', items: [
+            ['ak-voice-model-launch', '🎵 Speaking & Singing Voice', 'Open voice training workflows']
+          ]}
         ]
       },
       tools: {
         title: 'Professional Audio Workspace',
-        description: 'Open browser-based tools for mixing, audio effects and basic stereo vocal processing.',
-        actions: [
-          ['ak-mixer-launch', '🎚 Song Mixer'],
-          ['ak-effects-launch', '🎛 Audio Effects & Mastering'],
-          ['ak-stem-launch', '🎤 Vocal & Center Processing'],
-          ['ak-multilingual-launch', '🌍 Multilingual Song Studio'],
-          ['ak-ultimate-launch', '🎚 Ultimate Music Studio'],
-          ['ak-mastering-launch', '🎚 Mastering Studio 2.0'],
-          ['ak-cloud-launch', '☁️ Cloud Login'],
-          ['ak-profile-launch', '👤 My Profile'],
-          ['ak-songwriting-launch', '✍️ Songwriting Studio'],
-          ['ak-suno-hub', '🚀 AI Studio 2026'],
-          ['ak-engine-launch', '⚙️ AI Engine Manager']
+        description: 'Choose a dedicated workspace for each part of your music production.',
+        groups: [
+          { title: 'Audio Production', items: [
+            ['ak-mixer-launch', '🎚 Song Mixer', 'Mix vocals and instrumental tracks'],
+            ['ak-effects-launch', '🎛 Audio Effects', 'Equalizer, reverb and compression'],
+            ['ak-stem-launch', '🎤 Vocal & Center Processing', 'Basic stereo center processing'],
+            ['ak-ultimate-launch', '🎼 Ultimate Music Studio', 'Multitrack editing and mixing'],
+            ['ak-mastering-launch', '✨ Mastering Studio', 'Master and export WAV audio']
+          ]},
+          { title: 'Songwriting & Languages', items: [
+            ['ak-songwriting-launch', '✍️ Songwriting Studio', 'Write and organize song lyrics'],
+            ['ak-multilingual-launch', '🌍 Multilingual Song Studio', 'Prepare multilingual song prompts']
+          ]},
+          { title: 'AI Engine Management', items: [
+            ['ak-suno-hub', '🚀 AI Studio Hub', 'Check generation backend and API'],
+            ['ak-engine-launch', '⚙️ AI Engine Manager', 'Inspect engine status and generation jobs']
+          ]},
+          { title: 'Account & Cloud', items: [
+            ['ak-profile-launch', '👤 My Profile', 'Manage local profile and preferences'],
+            ['ak-cloud-launch', '☁️ Cloud Login & Sync', 'Open account and cloud options']
+          ]}
         ]
       }
     };
 
     function showPage(page) {
-      const config = tools[page];
+      const config = sections[page];
       if (!config) return;
 
-      panel.classList.add('ak-library-panel', 'ak-control-panel');
+      panel.classList.add('ak-library-panel', 'ak-control-panel', 'ak-pro-workspace');
       panel.innerHTML = `
         <div class="ak-control-heading">
           <span class="ak-control-kicker">AKSTUDIOFREEAI WORKSPACE</span>
           <h2>${config.title}</h2>
           <p>${config.description}</p>
         </div>
-        <div class="ak-control-actions">
-          ${config.actions.map(([id, label]) =>
-            `<button type="button" class="secondary ak-tool-open" data-target="${id}">${label} →</button>`
-          ).join('')}
-        </div>
+        ${config.groups.map(group => `
+          <section class="ak-tool-group">
+            <h3>${group.title}</h3>
+            <div class="ak-pro-tool-grid">
+              ${group.items.map(([id, label, description]) => `
+                <button type="button" class="ak-pro-tool" data-target="${id}">
+                  <span class="ak-pro-tool-title">${label}</span>
+                  <span class="ak-pro-tool-description">${description}</span>
+                  <span class="ak-pro-tool-arrow">Open workspace →</span>
+                </button>
+              `).join('')}
+            </div>
+          </section>
+        `).join('')}
         <p class="ak-control-note">
-          These tools run in your browser. Voice model training requires an external
-          supported training environment. Basic center processing is not AI source separation.
+          Tools open their existing functions. Voice model training requires a supported
+          external training environment. Vocal & Center Processing is not AI source separation.
         </p>
       `;
     }
@@ -59,17 +81,15 @@
     });
 
     panel.addEventListener('click', event => {
-      const button = event.target.closest('.ak-tool-open');
+      const button = event.target.closest('.ak-pro-tool');
       if (!button) return;
-
       const target = document.getElementById(button.dataset.target);
       if (target) {
         target.click();
       } else {
-        const name = button.dataset.target;
         const status = panel.querySelector('.ak-control-note');
         if (status) status.textContent =
-          'Tool is still initializing. Refresh the page and try again.';
+          'This tool is initializing. Refresh the page and try again.';
       }
     });
   }

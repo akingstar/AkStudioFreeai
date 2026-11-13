@@ -237,3 +237,65 @@ html, body {
     font-size: 12px;
   }
 }
+
+/* AKSTUDIO PROFESSIONAL TOOL WORKSPACES */
+.ak-pro-workspace {
+  text-align: left;
+  padding: clamp(16px, 3vw, 30px);
+}
+.ak-tool-group {
+  margin-top: 30px;
+}
+.ak-tool-group h3 {
+  color: #eee;
+  font-size: 15px;
+  margin: 0 0 13px;
+  letter-spacing: .3px;
+}
+.ak-pro-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 13px;
+}
+.ak-pro-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 9px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 17px;
+  color: #fff;
+  background: linear-gradient(145deg, #202020, #141414);
+  border: 1px solid #383838;
+  border-radius: 13px;
+  cursor: pointer;
+  transition: border-color .18s, transform .18s, background .18s;
+}
+.ak-pro-tool:hover {
+  border-color: #888;
+  background: #252525;
+  transform: translateY(-2px);
+}
+.ak-pro-tool-title {
+  font-size: 14px;
+  font-weight: 750;
+}
+.ak-pro-tool-description {
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ak-pro-tool-arrow {
+  color: #ddd;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: auto;
+}
+@media(max-width:600px) {
+  .ak-pro-workspace { padding: 15px !important; }
+  .ak-tool-group { margin-top: 23px; }
+  .ak-pro-tool-grid { grid-template-columns: 1fr; }
+  .ak-pro-tool { min-height: 96px; }
+}
