@@ -21,7 +21,12 @@
           ['ak-stem-launch', '🎤 Vocal & Center Processing'],
           ['ak-multilingual-launch', '🌍 Multilingual Song Studio'],
           ['ak-ultimate-launch', '🎚 Ultimate Music Studio'],
-          ['ak-mastering-launch', '🎚 Mastering Studio 2.0']
+          ['ak-mastering-launch', '🎚 Mastering Studio 2.0'],
+          ['ak-cloud-launch', '☁️ Cloud Login'],
+          ['ak-profile-launch', '👤 My Profile'],
+          ['ak-songwriting-launch', '✍️ Songwriting Studio'],
+          ['ak-suno-hub', '🚀 AI Studio 2026'],
+          ['ak-engine-launch', '⚙️ AI Engine Manager']
         ]
       }
     };

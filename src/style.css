@@ -192,3 +192,48 @@ footer span{padding:0 5px}
 .ak-u-actions button:disabled{opacity:.5}
 .ak-u-disclaimer{border-top:1px solid #333;padding-top:12px;margin-top:15px}
 @media(max-width:600px){.ak-ultimate-card{padding:14px}.ak-u-track-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* AKSTUDIO MOBILE FLOATING LAUNCHER FIX */
+#ak-cloud-launch,
+#ak-profile-launch,
+#ak-songwriting-launch,
+#ak-suno-hub,
+#ak-engine-launch,
+#ak-voice-launch,
+#ak-voice-model-launch,
+#ak-mixer-launch,
+#ak-effects-launch,
+#ak-stem-launch,
+#ak-ultimate-launch,
+#ak-mastering-launch {
+  display: none !important;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 700px) {
+  .main, .page, #otherPage, .studio-grid, .panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ak-control-panel {
+    padding: 16px !important;
+    overflow-wrap: anywhere;
+  }
+
+  .ak-control-actions {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px;
+  }
+
+  .ak-control-actions .secondary {
+    width: 100%;
+    min-height: 48px;
+    font-size: 12px;
+  }
+}
