@@ -33,7 +33,7 @@ function buildJob() {
     caption: [prompt, $('genre').value, $('mood').value, $('voice').value, $('singing').value + ' singing'].join(', '),
     lyrics: instrumental ? '[Instrumental]' : $('lyrics').value,
     lang: instrumental ? 'unknown' : (LANG[$('language').value] || 'unknown'),
-    duration: Math.min(Number($('duration').value) || 60, 60),
+    duration: Math.min(Number($('duration').value) || 600, 600),
   }
 }
 

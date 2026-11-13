@@ -61,7 +61,7 @@ app.innerHTML = `
             <div><label class="field-label">MUSIC STYLE</label><select id="genre"><option>Pop</option><option>Bollywood</option><option>Romantic</option><option>Hip Hop</option><option>Rock</option><option>Classical</option><option>EDM</option><option>Lo-fi</option><option>Qawwali</option><option>Acoustic</option><option>Jazz</option><option>Folk</option></select></div>
             <div><label class="field-label">MOOD</label><select id="mood"><option>Emotional</option><option>Romantic</option><option>Energetic</option><option>Sad</option><option>Peaceful</option><option>Dark</option><option>Hopeful</option><option>Epic</option></select></div>
             <div><label class="field-label">LANGUAGE</label><select id="language"><option>Hindi</option><option>English</option><option>Punjabi</option><option>Urdu</option><option>Bengali</option><option>Spanish</option><option>French</option><option>Japanese</option><option>Multi-language</option></select></div>
-            <div><label class="field-label">SONG LENGTH</label><select id="duration"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180" selected>3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes</option></select></div>
+            <div><label class="field-label">SONG LENGTH</label><select id="duration"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes</option><option value="600" selected>10 minutes</option></select></div>
           </div>
 
           <div class="divider"></div>
