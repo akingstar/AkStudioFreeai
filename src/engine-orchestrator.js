@@ -1,3 +1,5 @@
+import { loadRegistry } from './ak-registry.js';
+
 (() => {
   if (window.AKEngine) return;
 
@@ -61,20 +63,76 @@
       window.dispatchEvent(new CustomEvent('ak:jobs-updated',{detail:jobs}));
     },
     async health() {
-      const url='https://ashklyrics-akstudiofreeai.hf.space/config';
+      const targets = [
+        {name:'ACE-Step ZeroGPU',url:'https://ashklyrics-akstudiofreeai.hf.space'}
+      ];
       try {
-        const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
-        return {ok:r.ok,status:r.status,engine:'ACE-Step'};
-      } catch(e) {
-        return {ok:false,error:e.message,engine:'ACE-Step'};
-      }
+        const registry = await loadRegistry();
+        for (const item of registry) {
+          if (item.base && !targets.some(x=>x.url===item.base)) {
+            targets.push({name:item.name,url:item.base});
+          }
+        }
+      } catch {}
+
+      const results = await Promise.all(targets.map(async item => {
+        try {
+          const r = await fetch(item.url+'/config',{
+            cache:'no-store',
+            signal:AbortSignal.timeout(12000)
+          });
+          return {name:item.name,url:item.url,ok:r.ok,status:r.status};
+        } catch(e) {
+          return {name:item.name,url:item.url,ok:false,error:e.message};
+        }
+      }));
+
+      engines.music.status = results[0]?.ok ? 'online' : 'unavailable';
+      return {
+        ok:results.some(x=>x.ok),
+        engine:'ACE-Step',
+        backends:results
+      };
     },
-    async runMusic(payload) {
+    async runMusic(payload={}) {
       const job=this.createJob('music',payload);
-      this.updateJob(job.id,{
-        status:'ready-for-generator',
-        message:'Use the existing ACE-Step generator to submit this job.'
-      });
+      try {
+        const prompt=document.getElementById('prompt');
+        const lyrics=document.getElementById('lyrics');
+        const generate=document.getElementById('generate');
+
+        if (!prompt || !generate) {
+          throw new Error('Existing music generator UI was not found.');
+        }
+
+        const description=String(payload.prompt || payload.description || '').trim();
+        if (!description) {
+          throw new Error('Add a music prompt before submitting.');
+        }
+
+        prompt.value=description;
+        prompt.dispatchEvent(new Event('input',{bubbles:true}));
+        prompt.dispatchEvent(new Event('change',{bubbles:true}));
+
+        if (lyrics && payload.lyrics) {
+          lyrics.value=String(payload.lyrics);
+          lyrics.dispatchEvent(new Event('input',{bubbles:true}));
+          lyrics.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+
+        this.updateJob(job.id,{
+          status:'submitted-to-generator',
+          progress:0,
+          message:'Submitted to the existing ACE-Step generator. Generation status is managed by its own queue.'
+        });
+
+        generate.click();
+      } catch(e) {
+        this.updateJob(job.id,{
+          status:'failed',
+          error:e.message
+        });
+      }
       return job;
     }
   };
@@ -145,9 +203,10 @@
   $('ak-engine-health').onclick=async()=>{
     $('ak-engine-health-result').textContent='Checking...';
     const result=await api.health();
-    $('ak-engine-health-result').textContent=result.ok
-      ? 'Connected · HTTP '+result.status
-      : 'Unavailable · '+result.error;
+    $('ak-engine-health-result').textContent =
+      (result.backends || []).map(x =>
+        (x.ok ? '✓ ' : '✕ ') + x.name + (x.status ? ' · HTTP '+x.status : x.error ? ' · '+x.error : '')
+      ).join(' | ') || (result.ok ? 'Backend reachable.' : 'No backend reachable.');
   };
   window.addEventListener('ak:jobs-updated',render);
   render();

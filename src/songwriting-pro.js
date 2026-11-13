@@ -235,6 +235,96 @@
       $('ak-sw-output').value='';
       $('ak-sw-status').textContent='New song started.';
     };
+    // Lyrics Studio upgrade tools
+    const qualityBtn=document.createElement('button');
+    qualityBtn.id='ak-sw-quality';
+    qualityBtn.textContent='✓ Check lyrics';
+    const hookBtn=document.createElement('button');
+    hookBtn.id='ak-sw-hook';
+    hookBtn.textContent='♫ Build hook prompt';
+    const copyBtn=document.createElement('button');
+    copyBtn.id='ak-sw-copy-prompt';
+    copyBtn.textContent='Copy AI prompt';
+    const applyBtn=document.createElement('button');
+    applyBtn.id='ak-sw-apply-prompt';
+    applyBtn.textContent='Send prompt to generator';
+    $('ak-sw-actions').append(qualityBtn,hookBtn,copyBtn,applyBtn);
+
+    qualityBtn.onclick=()=>{
+      const text=fullLyrics();
+      const words=text.trim()?text.trim().split(/\s+/u).length:0;
+      const chorus=(data.lyrics['Chorus']||'').trim();
+      const verse=(data.lyrics['Verse 1']||'').trim();
+      const checks=[];
+      if(words<20) checks.push('Add more lyrics: current draft is very short.');
+      else checks.push('✓ Draft length looks usable.');
+      if(!chorus) checks.push('Add a Chorus with a memorable repeated hook.');
+      else checks.push('✓ Chorus section exists.');
+      if(!verse) checks.push('Add Verse 1 to develop the story.');
+      else checks.push('✓ Verse 1 exists.');
+      if(!data.topic.trim()) checks.push('Add a song story or central idea.');
+      else checks.push('✓ Song story is defined.');
+      const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      const repeated=lines.filter((x,i)=>lines.indexOf(x)!==i);
+      if(repeated.length) checks.push('Review repeated lines: '+[...new Set(repeated)].slice(0,3).join(' / '));
+      $('ak-sw-output').value='LYRICS REVIEW\n'+checks.join('\n');
+      $('ak-sw-status').textContent='Review complete. These are writing checks, not an AI-generated quality score.';
+    };
+
+    hookBtn.onclick=()=>{
+      const chorus=(data.lyrics['Chorus']||'').trim();
+      $('ak-sw-output').value=[
+        'Write 5 original, memorable chorus hook options.',
+        'LANGUAGE: '+data.lang,
+        'GENRE: '+data.genre,
+        'MOOD: '+data.mood,
+        'SONG STORY: '+data.topic,
+        'Existing chorus idea: '+(chorus||'Create a fresh hook from the song story.'),
+        'Make each hook singable, emotionally clear, rhythmically concise and easy to remember.',
+        'Avoid clichés, awkward rhymes and unnatural translations.',
+        'Return each option with a short explanation of its emotional impact.'
+      ].join('\n\n');
+      $('ak-sw-status').textContent='Hook-writing prompt prepared. Use Copy AI prompt or send it to the generator.';
+    };
+
+    copyBtn.onclick=async()=>{
+      const text=$('ak-sw-output').value || [
+        'Write original song lyrics.',
+        'Language: '+data.lang,
+        'Genre: '+data.genre,
+        'Mood: '+data.mood,
+        'Story: '+data.topic,
+        fullLyrics()
+      ].join('\n\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        $('ak-sw-status').textContent='✓ Prompt copied.';
+      } catch {
+        $('ak-sw-output').value=text;
+        $('ak-sw-output').focus();
+        $('ak-sw-status').textContent='Select and copy the prompt manually.';
+      }
+    };
+
+    applyBtn.onclick=()=>{
+      const promptText=$('ak-sw-output').value.trim();
+      if(!promptText) {
+        $('ak-sw-status').textContent='Build an AI lyrics or hook prompt first.';
+        return;
+      }
+      const target=document.querySelector('#prompt');
+      if(!target) {
+        $('ak-sw-status').textContent='Music prompt field not found. Copy the prompt instead.';
+        return;
+      }
+      target.value=promptText;
+      target.dispatchEvent(new Event('input',{bubbles:true}));
+      target.dispatchEvent(new Event('change',{bubbles:true}));
+      $('ak-sw-status').textContent='✓ Prompt sent to the existing music generator. Review it before generating.';
+      modal.classList.remove('open');
+      target.scrollIntoView({behavior:'smooth',block:'center'});
+    };
+
     restore();
   }
 
