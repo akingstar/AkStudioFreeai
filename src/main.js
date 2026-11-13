@@ -354,3 +354,5 @@ import './mastering-pro.js';
 import './ultimate-studio.js';
 
 import './multilingual-pro.js';
+
+import './songwriting-pro.js';
