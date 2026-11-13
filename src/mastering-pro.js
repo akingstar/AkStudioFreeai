@@ -41,8 +41,8 @@
           </div>
         </div>
         <div class="ak-master-controls">
-          <label>Reverb <output id="ak-reverb-val">15%</output>
-            <input id="ak-reverb" type="range" min="0" max="60" value="15"></label>
+          <label>Reverb <output id="ak-master-reverb-val">15%</output>
+            <input id="ak-master-reverb" type="range" min="0" max="60" value="15"></label>
           <label>Stereo width <output id="ak-width-val">100%</output>
             <input id="ak-width" type="range" min="0" max="200" value="100"></label>
           <label>Compression <output id="ak-comp-val">Medium</output>
@@ -67,7 +67,7 @@
     };
 
     const ranges = [
-      ['ak-reverb','ak-reverb-val',v => v+'%'],
+      ['ak-master-reverb','ak-master-reverb-val',v => v+'%'],
       ['ak-width','ak-width-val',v => v+'%'],
       ['ak-comp','ak-comp-val',v => v < 30 ? 'Light' : v < 70 ? 'Medium' : 'Strong'],
       ['ak-level','ak-level-val',v => v+'%']
@@ -84,7 +84,7 @@
         x.nextElementSibling.textContent = '0 dB';
       });
       ranges.forEach(([id,out,fmt]) => {
-        const defaults = {'ak-reverb':15,'ak-width':100,'ak-comp':50,'ak-level':100};
+        const defaults = {'ak-master-reverb':15,'ak-width':100,'ak-comp':50,'ak-level':100};
         $(id).value = defaults[id];
         $(out).textContent = fmt(defaults[id]);
       });
@@ -162,7 +162,7 @@
       const dry = offline.createGain();
       const convolver = offline.createConvolver();
       const wet = offline.createGain();
-      const reverbAmount = Number($('ak-reverb').value)/100;
+      const reverbAmount = Number($('ak-master-reverb').value)/100;
       dry.gain.value = 1 - reverbAmount*0.45;
       wet.gain.value = reverbAmount;
 
