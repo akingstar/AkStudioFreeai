@@ -45,7 +45,7 @@ function argsFor(j) {
     null, j.duration, 1, null, '', 0.0, -1,
     'Fill the audio semantic mask based on the given conditions:',
     1.0, 'text2music', false, 0.0, 1.0, 3.0, 'ode', '', 'mp3',
-    0.85, true, 2.0, 0, 0.9, 'NO USER INPUT',
+    0.85, !window.AK_FAST, 2.0, 0, 0.9, 'NO USER INPUT',
     true, true, true, false, true, false, false, 8,
     'vocals', [], false,
   ]
@@ -145,3 +145,6 @@ try {
     scheduleRetry(left)
   }
 } catch {}
+
+// AK_WARMUP: page khulte hi connection ready rakho
+Client.connect(BACKENDS[0].id).then(c => { clients[BACKENDS[0].id] = c }).catch(() => {})
