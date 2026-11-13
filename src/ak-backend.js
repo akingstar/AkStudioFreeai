@@ -1,4 +1,5 @@
 import { Client } from '@gradio/client'
+import { loadRegistry } from './ak-registry.js'
 
 // Order mein try honge. Naya backend add karna ho to yahan ek line jodo.
 const BACKENDS = [
@@ -68,7 +69,8 @@ async function runOn(b, j) {
 async function generateWithFallback(j) {
   let minWait = null
   const errors = []
-  for (const b of BACKENDS) {
+  const all = [...BACKENDS, ...(await loadRegistry())]
+  for (const b of all) {
     try {
       notice.textContent = `${b.name} se generate ho raha hai... (30-90 sec)`
       return await runOn(b, j)
