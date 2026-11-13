@@ -30,7 +30,7 @@ btn.addEventListener('click', async () => {
   const caption = [prompt, $('genre').value, $('mood').value, $('voice').value, $('singing').value + ' singing'].join(', ')
   const lyrics = instrumental ? '[Instrumental]' : $('lyrics').value
   const lang = instrumental ? 'unknown' : (LANG[$('language').value] || 'unknown')
-  const duration = Math.min(Number($('duration').value) || 60, 120)   // ZeroGPU limit ke liye cap
+  const duration = Math.min(Number($('duration').value) || 60, 60)   // ZeroGPU limit ke liye cap
 
   busy = true
   btn.disabled = true
