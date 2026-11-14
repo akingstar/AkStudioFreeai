@@ -107,7 +107,7 @@ function renderShell() {
 
   <section class="panel vc-convert">
     <div class="panel-head"><div><span class="step">03</span><b>Gaana → meri awaaz</b></div><span class="subtle">DEMUCS + SEED-VC</span></div>
-    <p class="subtle clone-help">Poora gaana do: vocals alag honge, aapki awaaz me convert honge, phir instrumental ke saath mix. 5 min tak ka gaana support.</p>
+    <p class="subtle clone-help">Poora gaana do: vocals alag honge, aapki awaaz me convert honge, phir instrumental ke saath mix. Free ZeroGPU par ~60-90s clip best; lambe gaane CPU/Pro API par.</p>
     <input id="vcConvFile" type="file" accept="audio/*" class="text-input">
     <div class="settings-grid">
       <div><label class="field-label">SOURCE TYPE</label><select id="vcSep"><option value="1">Poora gaana (vocals alag karo)</option><option value="0">Sirf vocals / acapella</option></select></div>

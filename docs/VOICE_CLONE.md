@@ -58,8 +58,12 @@ Branch protection note: GitHub Pages must be set to *Source: GitHub Actions*.
    acapella-style track (“clear natural lead vocals”) finishes generating, it is
    automatically converted and you get an **Original / Meri awaaz** A/B toggle.
 
-Limits: songs up to 300 s (`AK_MAX_SEC`), reference trimmed to 25 s. On CPU hardware
-steps are capped at 12 and a song can take many minutes.
+Limits: reference is trimmed to 25 s. On ZeroGPU hardware the free quota is a few
+minutes per day and each call is billed up to its requested 120 s window, so a
+~60–90 s clip is the practical ceiling — the Space fails fast with a clear message
+instead of burning quota. On CPU hardware steps are capped at 12 and a song can take
+many minutes. Long songs (up to `AK_MAX_SEC`, default 300 s) belong on CPU or a paid
+Pro API.
 
 ## Optional paid / Pro API
 

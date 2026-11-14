@@ -220,7 +220,7 @@ def mix(vocals, sr_v, inst_path, vocals_path=None):
     return out.astype(np.float32), sr_i, round(gain, 3)
 
 
-@GPU(duration=180)
+@GPU(duration=120)
 def clone_song(song, reference, pitch=0, steps=25, separate=True, progress=gr.Progress()):
     t0 = time.time()
     if not song or not reference:
@@ -237,6 +237,16 @@ def clone_song(song, reference, pitch=0, steps=25, separate=True, progress=gr.Pr
     if not has_cuda():
         steps = min(steps, 12)  # CPU par tez rakhne ke liye
     pitch = int(max(-24, min(int(pitch), 24)))
+
+    # ZeroGPU budget = 120s per call (billed per call, not per second used).
+    # ~90s vocals @ 25 steps is the safe ceiling; fail fast instead of wasting quota.
+    if has_cuda():
+        est = song_sec * (0.05 + 0.0225 * steps)
+        if est > 110:
+            raise gr.Error(
+                f"ZeroGPU budget ~120s: ye job ~{est:.0f}s lega. Chhota clip (max ~60-90s), "
+                f"kam steps, ya Pro API use karo."
+            )
 
     work = tempfile.mkdtemp(prefix="akv_")
     progress(0.05, desc="Setup")
