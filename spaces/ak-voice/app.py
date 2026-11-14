@@ -17,6 +17,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
 
@@ -50,6 +51,26 @@ sys.path.insert(0, REPO)
 os.chdir(REPO)  # Seed-VC configs relative paths use karta hai
 
 from seed_vc_wrapper import SeedVCWrapper  # noqa: E402
+
+
+def _prewarm_weights():
+    """ZeroGPU budget 120s hai — weights startup par cache karo, warna pehla call timeout."""
+    try:
+        from huggingface_hub import snapshot_download
+        for repo in ("Plachta/Seed-VC", "openai/whisper-small",
+                     "nvidia/bigvgan_v2_22khz_80band_256x",
+                     "nvidia/bigvgan_v2_44khz_128band_512x",
+                     "lj1995/VoiceConversionWebUI", "funasr/campplus"):
+            try:
+                snapshot_download(repo)
+            except Exception as e:
+                print(f"prewarm skip {repo}: {e}", flush=True)
+        print("model cache ready", flush=True)
+    except Exception as e:
+        print(f"prewarm disabled: {e}", flush=True)
+
+
+threading.Thread(target=_prewarm_weights, daemon=True).start()
 
 _VC = None
 
