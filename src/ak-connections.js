@@ -24,6 +24,7 @@ async function checkAll() {
     ['ZeroGPU music (primary)', SPACE_BASE, 'space'],
     ['Termux relay (aapka phone)', s.relayUrl, 'relay'],
     ['Voice clone Space', s.voiceMode === 'official' ? spaceBase(OFFICIAL_SEEDVC) : spaceBase(s.voiceSpace), 'space'],
+    ...(s.localUrl && s.localMode !== 'off' ? [['Local engine (aapka PC)', s.localUrl, 'space', 'start karo: local\\start-windows.ps1 (Linux/Termux: local/start-linux.sh)']] : []),
     ...(s.proApiUrl ? [['Pro voice API', s.proApiUrl, 'api']] : []),
   ]
   for (const x of s.extraBackends || []) rows.push([x.name || 'Custom', x.url, 'space'])
@@ -38,7 +39,7 @@ async function checkAll() {
     }
     return ping(url)
   }))
-  box.innerHTML = rows.map((r, i) => `<div class="ak-conn-row"><span>${dot(res[i])}</span><b>${esc(r[0])}</b><small>${esc(r[1])}${res[i] === 'off' ? ' — chalu nahi (Termux me: ak start)' : ''}</small></div>`).join('')
+  box.innerHTML = rows.map((r, i) => `<div class="ak-conn-row"><span>${dot(res[i])}</span><b>${esc(r[0])}</b><small>${esc(r[1])}${res[i] === 'off' ? ' — chalu nahi (Termux me: ak start)' : ''}${res[i] === 'down' && r[3] ? ' — ' + esc(r[3]) : ''}</small></div>`).join('')
 }
 
 function render() {
@@ -72,7 +73,24 @@ function render() {
       <input id="connProKey" class="text-input" type="password" autocomplete="off" value="${esc(s.proApiKey)}">
 
       <div class="divider"></div>
-      <div class="panel-head"><div><span class="step">04</span><b>Extra backends</b></div></div>
+      <div class="panel-head"><div><span class="step">04</span><b>Local engine (quota fallback)</b></div><span class="subtle">AAPKA PC</span></div>
+      <p class="subtle clone-help">Cloud quota khatam? Apne PC par same Space chalao (CPU/GPU). Repo me <code>local/start-windows.ps1</code> ya <code>local/start-linux.sh</code> ek baar chalao — phir yahan URL auto-detect ho jayega. Free, unlimited, par CPU par slow.</p>
+      <label class="field-label">LOCAL ENGINE URL</label>
+      <input id="connLocal" class="text-input" value="${esc(s.localUrl)}" placeholder="http://127.0.0.1:7861">
+      <label class="field-label" style="margin-top:8px">KAB USE KARE</label>
+      <select id="connLocalMode">
+        <option value="auto" ${s.localMode === 'auto' ? 'selected' : ''}>Auto — cloud fail/quota khatam hone par</option>
+        <option value="first" ${s.localMode === 'first' ? 'selected' : ''}>Pehle local (cloud quota bachao)</option>
+        <option value="only" ${s.localMode === 'only' ? 'selected' : ''}>Sirf local (offline mode)</option>
+        <option value="off" ${s.localMode === 'off' ? 'selected' : ''}>Off — sirf cloud</option>
+      </select>
+      <div class="clone-actions" style="margin-top:8px">
+        <button class="secondary" id="connLocalTest" type="button">↻ Test local engine</button>
+      </div>
+      <div class="subtle" id="connLocalStatus">Test dabao.</div>
+
+      <div class="divider"></div>
+      <div class="panel-head"><div><span class="step">05</span><b>Extra backends</b></div></div>
       <p class="subtle clone-help">Apne duplicate kiye hue Spaces (jaise CPU Space). Har line: <code>Naam | https://...hf.space</code></p>
       <textarea id="connExtra" class="prompt" style="min-height:80px">${esc((s.extraBackends || []).map(x => `${x.name} | ${x.url}`).join('\n'))}</textarea>
       <button class="generate" id="connSave" type="button">✦ Save settings</button>
@@ -107,12 +125,28 @@ function render() {
       voiceSteps: Math.min(50, Math.max(4, Number($('connSteps').value) || 25)),
       proApiUrl: $('connProUrl').value.trim(),
       proApiKey: $('connProKey').value.trim(),
+      localUrl: $('connLocal').value.trim().replace(/\/+$/, '') || 'http://127.0.0.1:7861',
+      localMode: $('connLocalMode').value,
       extraBackends: extra,
     })
     $('connNotice').textContent = '✓ Save ho gaya.'
     checkAll()
   }
   $('connCheck').onclick = checkAll
+  $('connLocalTest').onclick = async () => {
+    const el = $('connLocalStatus')
+    const url = ($('connLocal').value.trim() || 'http://127.0.0.1:7861').replace(/\/+$/, '')
+    el.textContent = 'Testing...'
+    try {
+      const r = await fetch(url + '/config', { cache: 'no-store', signal: AbortSignal.timeout(4000) })
+      if (!r.ok) throw new Error('HTTP ' + r.status)
+      const j = await r.json()
+      const eps = (j.dependencies || []).map(d => d.api_name).filter(Boolean)
+      el.innerHTML = `🟢 Engine chal raha hai — <b>${esc(url)}</b>${eps.includes('clone_song') ? ' · clone_song ✓' : ' · ⚠️ clone_song nahi mila (purana app.py?)'}`
+    } catch (e) {
+      el.innerHTML = `🔴 Nahi chal raha — <code>local\\start-windows.ps1</code> chalao phir retry. (${esc(String(e.message || e)).slice(0, 70)})`
+    }
+  }
   $('connCopy').onclick = async () => {
     try { await navigator.clipboard.writeText(ONE_LINER); $('connNotice').textContent = 'Command copy ho gaya.' }
     catch { $('connNotice').textContent = 'Copy nahi hua, command ko select karke copy karo.' }

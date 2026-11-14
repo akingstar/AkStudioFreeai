@@ -1,0 +1,18 @@
+# local/ : Local voice engine (quota fallback)
+#
+# Same Gradio app as spaces/ak-voice, but on your own machine.
+# torch/torchaudio alag install hote hain (GPU/CPU version), isliye is file me nahi.
+numpy<2
+scipy
+librosa
+soundfile
+pydub
+munch
+einops
+transformers>=4.40,<5
+huggingface-hub
+pyyaml
+matplotlib
+tqdm
+descript-audio-codec
+demucs

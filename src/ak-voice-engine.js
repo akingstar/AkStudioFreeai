@@ -198,11 +198,47 @@ async function runPro({ source, ref, separate, pitch }, onStatus, onProgress) {
 }
 
 // ---------- Public API ----------
+async function runLocal({ source, ref, separate, pitch, steps }, onStatus, onProgress) {
+  const url = getSettings().localUrl
+  if (!url) throw new Error('Local engine URL configured nahi hai.')
+  onStatus?.('Local engine (aapka PC) se convert ho raha hai... (CPU par slow)')
+  const client = await Client.connect(url)
+  const args = [fileOf(source, 'source.wav'), fileOf(ref, 'reference.wav'), Number(pitch) || 0, Number(steps) || 25, !!separate]
+  const data = await predictWithProgress(client, '/clone_song', args, onProgress)
+  const [m, v, i, report] = data
+  if (!urlOf(m)) throw new Error('Local engine ne result nahi diya (app chal raha hai?)')
+  return {
+    mixed: await fetchBlob(urlOf(m)),
+    vocals: urlOf(v) ? await fetchBlob(urlOf(v)) : null,
+    instrumental: urlOf(i) ? await fetchBlob(urlOf(i)) : null,
+    report: typeof report === 'string' ? JSON.parse(report || '{}') : null,
+    via: 'Local engine',
+  }
+}
+
+export async function localReachable(url, ms = 2500) {
+  if (!url) return false
+  try {
+    const r = await fetch(url.replace(/\/+$/, '') + '/config', { cache: 'no-store', signal: AbortSignal.timeout(ms) })
+    return r.ok
+  } catch { return false }
+}
+
 export async function convertVoice({ source, ref, separate = true, pitch = 0, steps = 25, onStatus = () => {}, onProgress = () => {} }) {
   const s = getSettings()
-  const chain = [{ name: 'Mera Voice Space', run: runOwnSpace }]
-  if (s.voiceMode === 'official' || s.useOfficial) chain.unshift({ name: 'Official Seed-VC', run: runOfficial })
+  const localReady = s.localMode !== 'off' && await localReachable(s.localUrl)
+  const chain = []
+  if (localReady && s.localMode === 'first') chain.push({ name: 'Local engine', run: runLocal })
+  if (s.localMode !== 'only') {
+    if (s.voiceMode === 'official' || s.useOfficial) chain.push({ name: 'Official Seed-VC', run: runOfficial })
+    chain.push({ name: 'Mera Voice Space', run: runOwnSpace })
+  }
+  if (localReady && s.localMode !== 'first') chain.push({ name: 'Local engine', run: runLocal })
   if (s.proApiUrl) chain.push({ name: 'Pro API', run: runPro })
+  if (!chain.length) {
+    if (s.localMode === 'only') throw new Error(`Sirf-local mode on hai par local engine ${s.localUrl} par nahi chal raha — local\\start-windows.ps1 chalao (ya Connections me mode badlo).`)
+    throw new Error('Koi voice backend available nahi: Connections me voice backend ya local engine set karo.')
+  }
 
   const errors = []
   const t0 = Date.now()
@@ -229,15 +265,16 @@ export async function convertVoice({ source, ref, separate = true, pitch = 0, st
 export async function probeVoiceBackend() {
   const s = getSettings()
   const targets = []
-  if (s.voiceSpace) targets.push({ name: 'Mera Voice Space', url: 'https://' + s.voiceSpace.replace('/', '-').replace(/[._]/g, '-').toLowerCase() + '.hf.space' })
-  targets.push({ name: 'Official Seed-VC', url: 'https://plachta-seed-vc.hf.space' })
-  if (s.proApiUrl) targets.push({ name: 'Pro API', url: s.proApiUrl })
+  if (s.voiceSpace) targets.push({ name: 'Mera Voice Space', url: 'https://' + s.voiceSpace.replace('/', '-').replace(/[._]/g, '-').toLowerCase() + '.hf.space', path: '/config' })
+  targets.push({ name: 'Official Seed-VC', url: 'https://plachta-seed-vc.hf.space', path: '/config' })
+  if (s.localUrl && s.localMode !== 'off') targets.push({ name: 'Local engine', url: s.localUrl.replace(/\/+$/, ''), path: '/config' })
+  if (s.proApiUrl) targets.push({ name: 'Pro API', url: s.proApiUrl, path: '' })
   return Promise.all(targets.map(async t => {
     try {
-      const r = await fetch(t.url + (s.proApiUrl && t.name === 'Pro API' ? '' : '/config'), {
-        cache: 'no-store', signal: AbortSignal.timeout(12000),
+      const r = await fetch(t.url + t.path, {
+        cache: 'no-store', signal: AbortSignal.timeout(t.path ? 12000 : 8000),
       })
-      return { ...t, ok: r.ok, status: r.status }
-    } catch (e) { return { ...t, ok: false, error: String(e.message || e) } }
+      return { name: t.name, url: t.url, ok: r.ok, status: r.status }
+    } catch (e) { return { name: t.name, url: t.url, ok: false, error: String(e.message || e) } }
   }))
 }

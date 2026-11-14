@@ -11,6 +11,8 @@ const DEFAULTS = {
   proApiUrl: '',                       // optional paid/proxy voice API (POST base64)
   proApiKey: '',
   voiceSteps: 25,                      // Seed-VC diffusion steps
+  localUrl: 'http://127.0.0.1:7861',   // local voice engine (quota fallback)
+  localMode: 'auto',                   // auto (cloud fail par) | first | off
 }
 
 export function getSettings() {

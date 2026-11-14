@@ -122,7 +122,7 @@ function renderShell() {
     <div class="notice" id="vcConvNotice" role="status">Create page par "My cloned voice" chun kar bhi seedha gaana bana sakte ho.</div>
     <div id="vcOut"></div>
   </section>
-  <p class="subtle clone-foot">Voice conversion cloud (Hugging Face) par chalti hai. Quota khatam ho to Connections me apna HF token ya Pro API jodo. Sirf apni ya permission wali awaaz use karo; AI-generated music ko label karo.</p>`
+  <p class="subtle clone-foot">Voice conversion cloud (Hugging Face) par chalti hai. Quota khatam ho to Connections me apna HF token, <b>local engine</b> (aapka PC, unlimited) ya Pro API jodo. Sirf apni ya permission wali awaaz use karo; AI-generated music ko label karo.</p>`
   $('vcLine').textContent = READ_LINES[Math.floor(Math.random() * READ_LINES.length)]
 }
 

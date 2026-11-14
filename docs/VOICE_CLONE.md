@@ -17,8 +17,12 @@ upload song    ──► Voice Clone page
                                                               chunked + crossfade)
                                                           ──► loudness-matched mix
                  fallback: Official Seed-VC Space (acapella only)
+                 fallback: Local engine (same app on your PC, no quota)
                  fallback: optional Pro API (your own URL + key)
 ```
+
+Local fallback setup: [local/README.md](../local/README.md). Chain order follows
+Connections → *Local engine* mode: `auto` (cloud fail par), `first`, `only`, `off`.
 
 * Everything is client-driven: the browser calls the Space directly (Gradio API), so it
   works from GitHub Pages with no server of your own.

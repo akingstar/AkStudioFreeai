@@ -345,4 +345,6 @@ with gr.Blocks(title="AkStudio Voice Clone") as demo:
     info_out = gr.Textbox(label="Info", lines=5)
     info_btn.click(voice_info, None, info_out, api_name="voice_info")
 
-demo.queue(max_size=8).launch()
+HOST = os.getenv("AK_HOST", "0.0.0.0")
+PORT = int(os.getenv("AK_PORT", "7860"))
+demo.queue(max_size=8).launch(server_name=HOST, server_port=PORT)
