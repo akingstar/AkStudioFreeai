@@ -100,34 +100,31 @@ export async function analyzeReference(blob, { sr = 24000, maxSec = 25 } = {}) {
 
 // ---------- Backends ----------
 async function connect(spaceId, token) {
-  return Client.connect(spaceId, token ? { hf_token: token } : undefined)
-}
-
-function bindProgress(job, onProgress) {
-  try {
-    job.on?.('progress', p => onProgress?.({
-      progress: typeof p?.progress === 'number' ? p.progress : 0,
-      desc: p?.desc || p?.title || '',
-    }))
-    job.on?.('status', s => {
-      const stage = s?.stage
-      if (stage === 'pending' || stage === 'generating') onProgress?.({ progress: 0, desc: 'Queue me hai...' })
-    })
-  } catch { /* older client: progress events nahi */ }
+  return Client.connect(spaceId, token ? { token } : undefined)
 }
 
 async function predictWithProgress(client, fn, args, onProgress) {
-  let job
-  try {
-    job = client.submit(fn, args)
-    bindProgress(job, onProgress)
-    const res = await job
-    return res?.data || []
-  } catch (e) {
-    if (job) throw e
-    // purana client: submit nahi, seedha predict
-    return (await client.predict(fn, args)).data
+  const job = client.submit(fn, args)
+  if (job && typeof job[Symbol.asyncIterator] === 'function') {
+    let out = null
+    let events = 0
+    for await (const m of job) {
+      events++
+      if (m?.type === 'status') {
+        const p = m.progress_data?.[0]
+        if (m.stage === 'error') throw new Error(typeof m.message === 'string' ? m.message : 'Backend error')
+        if (m.stage === 'pending') onProgress?.({ progress: 0, desc: 'Queue me hai...' })
+        else if (typeof p?.progress === 'number') onProgress?.({ progress: p.progress, desc: p.desc || m.title || 'Process ho raha hai...' })
+      } else if (m?.type === 'data') {
+        out = m.data
+      }
+    }
+    if (out) return out
+    if (events > 0) throw new Error('Backend ne result nahi diya')
   }
+  // Kuch client versions GPU endpoint par silently zero events dete hain — predict se real error milega.
+  const r = await client.predict(fn, args)
+  return r.data
 }
 
 async function runOwnSpace({ source, ref, separate, pitch, steps }, onStatus, onProgress) {
@@ -218,7 +215,8 @@ export async function convertVoice({ source, ref, separate = true, pitch = 0, st
       ])
       return { ...r, ms: Date.now() - t0 }
     } catch (e) {
-      const msg = String(e?.message || e).slice(0, 200)
+      let msg = String(e?.message || e).slice(0, 200)
+      if (/quota|ZeroGPU runs limit/i.test(msg)) msg += ' — Connections me apna HF token ya Pro API daalo'
       errors.push(`${b.name}: ${msg}`)
       onStatus?.(`${b.name} fail: ${msg} — agla backend try...`)
     }

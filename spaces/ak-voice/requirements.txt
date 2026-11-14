@@ -1,4 +1,5 @@
-# Seed-VC v2 runtime deps (torch/gradio HF image se aate hain, pin nahi karte)
+# Seed-VC v2 runtime deps (torch HF image se aata hai; torchaudio usi version ka chahiye)
+torchaudio
 numpy<2
 scipy
 librosa
@@ -9,4 +10,7 @@ einops
 transformers>=4.40,<5
 huggingface-hub
 pyyaml
+matplotlib
+tqdm
+descript-audio-codec
 demucs
