@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .env
 __pycache__/
+local/.venv/
+spaces/ak-voice/seed-vc/
 *.before-*
 *.backup-*
 *.tmp.ipynb
