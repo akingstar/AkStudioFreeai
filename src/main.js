@@ -1,4 +1,5 @@
 import './style.css'
+import './ak-theme.css'
 
 const app = document.querySelector('#app')
 
@@ -9,8 +10,10 @@ app.innerHTML = `
     <div class="side-label">WORKSPACE</div>
     <button class="nav active" data-page="create">✦ <span>Create Music</span></button>
     <button class="nav" data-page="library">▤ <span>My Library</span></button>
-    <button class="nav" data-page="voices">◉ <span>AI Voices</span></button>
+    <button class="nav" data-page="clone">🎤 <span>Voice Clone</span></button>
+    <button class="nav" data-page="voices">◉ <span>Voice Dataset</span></button>
     <button class="nav" data-page="tools">⌘ <span>Audio Tools</span></button>
+    <button class="nav" data-page="connect">⚙ <span>Connections</span></button>
     <div class="side-label second">STUDIO</div>
     <div class="side-note"><span class="live-dot"></span> Studio workspace</div>
     <div class="sidebar-bottom">
@@ -61,13 +64,13 @@ app.innerHTML = `
             <div><label class="field-label">MUSIC STYLE</label><select id="genre"><option>Pop</option><option>Bollywood</option><option>Romantic</option><option>Hip Hop</option><option>Rock</option><option>Classical</option><option>EDM</option><option>Lo-fi</option><option>Qawwali</option><option>Acoustic</option><option>Jazz</option><option>Folk</option></select></div>
             <div><label class="field-label">MOOD</label><select id="mood"><option>Emotional</option><option>Romantic</option><option>Energetic</option><option>Sad</option><option>Peaceful</option><option>Dark</option><option>Hopeful</option><option>Epic</option></select></div>
             <div><label class="field-label">LANGUAGE</label><select id="language"><option>Hindi</option><option>English</option><option>Punjabi</option><option>Urdu</option><option>Bengali</option><option>Spanish</option><option>French</option><option>Japanese</option><option>Multi-language</option></select></div>
-            <div><label class="field-label">SONG LENGTH</label><select id="duration"><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes</option><option value="600" selected>10 minutes</option></select></div>
+            <div><label class="field-label">SONG LENGTH</label><select id="duration"><option value="30">30 seconds (fastest)</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes (needs more quota)</option></select></div>
           </div>
 
           <div class="divider"></div>
           <div class="panel-head"><div><span class="step">03</span><b>Vocal direction</b></div><span class="subtle">ADVANCED CONTROLS</span></div>
           <div class="settings-grid">
-            <div><label class="field-label">VOICE</label><select id="voice"><option>Male — Warm</option><option>Male — Deep</option><option>Male — Soulful</option><option>Female — Soft</option><option>Female — Powerful</option><option>Duet</option><option>Instrumental only</option><option>My cloned voice (future)</option></select></div>
+            <div><label class="field-label">VOICE</label><select id="voice"><option>Male — Warm</option><option>Male — Deep</option><option>Male — Soulful</option><option>Female — Soft</option><option>Female — Powerful</option><option>Duet</option><option>Instrumental only</option><option value="__clone__">🎤 My cloned voice</option></select></div>
             <div><label class="field-label">SINGING STYLE</label><select id="singing"><option>Natural</option><option>Powerful</option><option>Breathy</option><option>Classical</option><option>Falsetto</option><option>Rap</option><option>Melodic</option></select></div>
           </div>
           <div class="range-row"><label>Vocal intensity <output id="intensityVal">70%</output></label><input type="range" id="intensity" min="0" max="100" value="70"></div>
@@ -76,9 +79,9 @@ app.innerHTML = `
 
           <div class="generate-area">
             <button id="generate" class="generate">✦ <span>Generate song</span> <span class="arrow">→</span></button>
-            <p>AI generation becomes available after a compatible backend is connected.</p>
+            <p>Free AI music. Quota khatam ho to apne aap agle backend par jayega.</p>
           </div>
-          <div id="notice" class="notice" role="status">Studio interface ready. AI engine is not connected yet.</div>
+          <div id="notice" class="notice" role="status">Studio ready. Description likho aur Generate dabao.</div>
         </section>
 
         <aside class="right-column">
@@ -94,15 +97,25 @@ app.innerHTML = `
           </section>
 
           <section class="panel quick">
-            <div class="panel-head"><b>Studio tools</b><span class="subtle">COMING NEXT</span></div>
-            <div class="tool-row"><span class="tool-icon">◉</span><div><b>Voice cloning</b><small>Train your singing voice</small></div><span class="coming">SOON</span></div>
-            <div class="tool-row"><span class="tool-icon">♫</span><div><b>Vocal separation</b><small>Vocals and instrumentals</small></div><span class="coming">SOON</span></div>
-            <div class="tool-row"><span class="tool-icon">⌁</span><div><b>Audio mastering</b><small>Polish your final sound</small></div><span class="coming">SOON</span></div>
-            <div class="tool-row"><span class="tool-icon">⟳</span><div><b>Remix & extend</b><small>Reimagine your music</small></div><span class="coming">SOON</span></div>
+            <div class="panel-head"><b>Studio tools</b><span class="subtle">QUICK ACCESS</span></div>
+            <button class="tool-row tool-link" data-go="clone"><span class="tool-icon">◉</span><div><b>Voice cloning</b><small>Apni awaaz me gaao</small></div><span class="coming live">OPEN</span></button>
+            <button class="tool-row tool-link" data-go="tools"><span class="tool-icon">♫</span><div><b>Vocal separation</b><small>Vocals and instrumentals</small></div><span class="coming live">OPEN</span></button>
+            <button class="tool-row tool-link" data-go="tools"><span class="tool-icon">⌁</span><div><b>Audio mastering</b><small>Polish your final sound</small></div><span class="coming live">OPEN</span></button>
+            <button class="tool-row tool-link" data-go="connect"><span class="tool-icon">⚙</span><div><b>Connections</b><small>HF token, Termux relay, backends</small></div><span class="coming live">OPEN</span></button>
           </section>
         </aside>
       </div>
       <footer>AKSTUDIOFREEAI <span>·</span> CREATE WITHOUT LIMITS <span class="footer-right">Independent open-source project</span></footer>
+    </section>
+
+    <section class="page hidden" id="clonePage">
+      <div class="hero small-hero"><div class="eyebrow"><span class="live-dot"></span> BUILT-IN VOICE CLONE</div><h1>Apni awaaz me<br><span>gaana banao.</span></h1><p>10-25 sec record karo, phir koi bhi gaana ya apne lyrics apni awaaz me suno. Training ki zaroorat nahi.</p></div>
+      <div id="cloneRoot"></div>
+    </section>
+
+    <section class="page hidden" id="connectPage">
+      <div class="hero small-hero"><div class="eyebrow">CONNECTIONS</div><h1>Quota khatam?<br><span>Phir bhi chalega.</span></h1><p>Fallback chain: ZeroGPU → aapka HF account → apne Spaces → Termux relay (phone) → Phone AI.</p></div>
+      <div id="connectRoot"></div>
     </section>
 
     <section class="page hidden" id="otherPage">
@@ -142,16 +155,6 @@ $('idea').addEventListener('click', () => {
   notice.textContent = 'A new music idea has been added to your description.'
 })
 
-$('generate').addEventListener('click', () => {
-  const prompt = $('prompt').value.trim()
-  if (!prompt) {
-    notice.textContent = 'Please enter a music description first.'
-    $('prompt').focus()
-    return
-  }
-  notice.textContent = 'Your settings are ready. Connect an AI music backend in the next development stage to generate real audio.'
-})
-
 $('songTitle').addEventListener('input', e => {
   $('previewTitle').textContent = e.target.value.trim() || 'Your next hit starts here'
 })
@@ -159,26 +162,36 @@ $('songTitle').addEventListener('input', e => {
 $('menu').addEventListener('click', () => $('sidebar').classList.toggle('open'))
 
 const pages = {
-  create: ['Create Music', 'Create your next song', 'Your creative workspace'],
+  create: ['Create Music'],
+  clone: ['Voice Clone'],
+  connect: ['Connections'],
   library: ['My Library', 'Your music library', 'Your saved tracks and creations will live here.'],
-  voices: ['AI Voices', 'Your voice studio', 'Voice profiles and voice training tools will live here.'],
-  tools: ['Audio Tools', 'Your audio toolbox', 'Separation, mastering, remixing and audio processing tools will live here.']
+  voices: ['Voice Dataset', 'Voice dataset studio', 'Record and export your voice samples for training.'],
+  tools: ['Audio Tools', 'Your audio toolbox', 'Separation, mastering, remixing and audio processing tools.']
+}
+const PAGE_SECTIONS = { create: 'createPage', clone: 'clonePage', connect: 'connectPage' }
+
+function showPage(page) {
+  document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b.dataset.page === page))
+  $('crumb').textContent = pages[page][0]
+  const sec = PAGE_SECTIONS[page] || 'otherPage'
+  ;['createPage', 'clonePage', 'connectPage', 'otherPage'].forEach(id => $(id).classList.toggle('hidden', id !== sec))
+  if (sec === 'otherPage') {
+    $('otherTitle').textContent = pages[page][1]
+    $('otherText').textContent = pages[page][2]
+    $('emptyTitle').textContent = page === 'library' ? 'Your music library is waiting' : page === 'voices' ? 'Your voice studio is waiting' : 'Your audio tools are waiting'
+  }
+  $('sidebar').classList.remove('open')
+  window.scrollTo({ top: 0 })
+  if (page === 'voices' || page === 'tools') window.akRenderStudioPage?.(page)
+  if (page === 'connect') window.akRenderConnections?.()
 }
 
-document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', () => {
-  const page = btn.dataset.page
-  document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b === btn))
-  $('crumb').textContent = pages[page][0]
-  $('createPage').classList.toggle('hidden', page !== 'create')
-  $('otherPage').classList.toggle('hidden', page === 'create')
-  $('otherTitle').textContent = pages[page][1]
-  $('otherText').textContent = pages[page][2]
-  $('emptyTitle').textContent = page === 'library' ? 'Your music library is waiting' : page === 'voices' ? 'Your voice studio is waiting' : 'Your audio tools are waiting'
-  $('sidebar').classList.remove('open')
-  if (page === 'voices' || page === 'tools') {
-    window.akRenderStudioPage?.(page)
-  }
-}))
+document.querySelectorAll('.nav').forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)))
+document.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]')
+  if (go) document.querySelector(`.nav[data-page="${go.dataset.go}"]`)?.click()
+})
 
 $('backCreate').addEventListener('click', () => document.querySelector('[data-page="create"]').click())
 
@@ -258,6 +271,7 @@ function akRenderLibrary() {
       <p>Create Music page par apna project save karo. Woh yahan dikhega.</p>
       <button class="secondary" id="akBack">← Create Music</button>`;
     $('akBack').onclick = () => document.querySelector('[data-page="create"]').click();
+    window.akRenderSongs?.(panel);
     return;
   }
 
@@ -281,6 +295,7 @@ function akRenderLibrary() {
     </div>
     <p class="ak-local-note">Saved on this device/browser. Cloud sync is not connected.</p>`;
 
+  window.akRenderSongs?.(panel);
   $('akExport').onclick = () => {
     const blob = new Blob([JSON.stringify(projects, null, 2)], {
       type: 'application/json'
@@ -338,28 +353,29 @@ document.querySelector('[data-page="library"]').addEventListener(
   'click', akRenderLibrary
 );
 
-import './song-mixer.js';
+// ===== Modules: core pehle, baaki idle time par (fast first paint) =====
+import('./ak-backend.js')
+  .then(() => Promise.all([import('./ak-pro.js'), import('./ak-voice-clone.js'), import('./ak-songs.js')]))
+  .catch(e => console.error('Core modules failed', e))
 
-import "./audio-effects.js";
+import('./ak-connections.js')
+import('./studio-navigation.js')
 
-import './stem-tools.js';
-
-import './user-profile.js';
-
-import './cloud-sync.js';
-
-import('./ak-backend.js').then(() => import('./ak-pro.js'))
-
-import './studio-navigation.js';
-
-import './mastering-pro.js';
-
-import './ultimate-studio.js';
-
-import './multilingual-pro.js';
-
-import './songwriting-pro.js';
-
-import './suno-2026-hub.js';
-
-import './engine-orchestrator.js';
+const idle = window.requestIdleCallback || (fn => setTimeout(fn, 400))
+idle(() => {
+  ;[
+    () => import('./song-mixer.js'),
+    () => import('./audio-effects.js'),
+    () => import('./stem-tools.js'),
+    () => import('./user-profile.js'),
+    () => import('./cloud-sync.js'),
+    () => import('./mastering-pro.js'),
+    () => import('./ultimate-studio.js'),
+    () => import('./multilingual-pro.js'),
+    () => import('./songwriting-pro.js'),
+    () => import('./suno-2026-hub.js'),
+    () => import('./engine-orchestrator.js'),
+    () => import('./voice-dataset.js'),
+    () => import('./voice-model.js'),
+  ].forEach(load => load().catch(e => console.warn('Module load failed', e)))
+})

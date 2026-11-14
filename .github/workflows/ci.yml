@@ -11,4 +11,5 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: node --check relay/ak-relay.mjs
       - run: npm run build

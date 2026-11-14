@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# ak: AkStudio Termux control. Use: ak help
+SELF="$(readlink -f "$0")"
+DIR="$(cd "$(dirname "$SELF")/.." && pwd)"
+HOME_DIR="${AK_HOME:-$HOME/.akstudio}"
+PIDF="$HOME_DIR/relay.pid"
+LOGF="$HOME_DIR/relay.log"
+CONF="$HOME_DIR/config.json"
+mkdir -p "$HOME_DIR"
+
+port() { node -e "try{console.log(JSON.parse(require('fs').readFileSync('$CONF')).port||8787)}catch{console.log(8787)}"; }
+running() { [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; }
+
+case "$1" in
+  start)
+    if running; then echo "Relay pehle se chal raha hai (pid $(cat "$PIDF"))."; exit 0; fi
+    command -v termux-wake-lock >/dev/null && termux-wake-lock
+    cd "$DIR" || exit 1
+    nohup node relay/ak-relay.mjs >> "$LOGF" 2>&1 &
+    echo $! > "$PIDF"
+    sleep 1.5
+    if running; then echo "✓ Relay start: http://127.0.0.1:$(port)  (log: ak logs)"; else echo "✗ Start fail. Dekho: ak logs"; tail -n 8 "$LOGF"; exit 1; fi ;;
+  stop)
+    if running; then kill "$(cat "$PIDF")" && rm -f "$PIDF"; echo "Relay band."; else echo "Relay chal nahi raha."; fi
+    command -v termux-wake-unlock >/dev/null && termux-wake-unlock ;;
+  restart) "$SELF" stop; "$SELF" start ;;
+  status)
+    if running; then echo "Relay: chal raha hai (pid $(cat "$PIDF"))"; else echo "Relay: band"; fi
+    curl -s --max-time 3 "http://127.0.0.1:$(port)/api/health" || echo "(health check fail)"; echo ;;
+  logs) tail -n 60 -f "$LOGF" ;;
+  token)
+    case "$2" in hf_*) ;; *) echo "Use: ak token hf_xxxxxxxx   (huggingface.co/settings/tokens se Read token)"; exit 1 ;; esac
+    AKT="$2" AKC="$CONF" node -e "const fs=require('fs'),p=process.env.AKC;let c={};try{c=JSON.parse(fs.readFileSync(p))}catch{};c.hfToken=process.env.AKT;fs.writeFileSync(p,JSON.stringify(c,null,2),{mode:0o600})"
+    echo "✓ Token save (sirf is phone me). Relay restart ho raha hai..."; "$SELF" restart ;;
+  backend)
+    [ -z "$2" ] || [ -z "$3" ] && { echo "Use: ak backend add \"Naam\" https://your-space.hf.space"; exit 1; }
+    AKN="$2" AKU="$3" AKC="$CONF" node -e "const fs=require('fs'),p=process.env.AKC;let c={};try{c=JSON.parse(fs.readFileSync(p))}catch{};c.extraBackends=(c.extraBackends||[]).filter(x=>x.url!==process.env.AKU);c.extraBackends.push({name:process.env.AKN,url:process.env.AKU});fs.writeFileSync(p,JSON.stringify(c,null,2),{mode:0o600})"
+    echo "✓ Backend add."; "$SELF" restart ;;
+  boot)
+    mkdir -p "$HOME/.termux/boot"
+    printf '#!/data/data/com.termux/files/usr/bin/bash\nsleep 15\n%s start\n' "$SELF" > "$HOME/.termux/boot/akstudio.sh"
+    chmod +x "$HOME/.termux/boot/akstudio.sh"
+    echo "✓ Auto-start set (Termux:Boot app install hona chahiye)." ;;
+  space) bash "$DIR/termux/space.sh" "$2" ;;
+  update)
+    cd "$DIR" && git pull --ff-only && npm install --omit=dev --no-audit --no-fund && "$SELF" restart ;;
+  build)
+    cd "$DIR" && npm install --no-audit --no-fund && npm run build && echo "✓ Build ho gaya. Ab: ak open (phone se hi poora app chalega)" ;;
+  open)
+    if [ -d "$DIR/dist" ]; then URL="http://127.0.0.1:$(port)/AkStudioFreeai/"; else URL="https://akingstar.github.io/AkStudioFreeai/"; fi
+    echo "$URL"; command -v termux-open-url >/dev/null && termux-open-url "$URL" ;;
+  push)
+    cd "$DIR" || exit 1
+    if [ ! -d .git ]; then
+      echo "Git repo nahi mila. Ek baar ye chalao:"
+      echo "  cd $DIR && git init -b main && git remote add origin https://github.com/akingstar/AkStudioFreeai.git && git pull origin main --allow-unrelated-histories"
+      exit 1
+    fi
+    git add -A && git commit -m "${2:-AkStudio pro update}" && git push origin HEAD
+    echo "✓ Push ho gaya. GitHub Actions site deploy karega (1-2 min): https://akingstar.github.io/AkStudioFreeai/" ;;
+  *)
+    cat <<H
+ak start | stop | restart | status | logs    Relay (queue worker) control
+ak token hf_xxx                            Apna free HF token (zyada ZeroGPU quota)
+ak backend "Naam" https://x.hf.space       Extra backend jodo
+ak space voice                             Voice clone Space (HF, free) deploy
+ak space music-cpu                         ZeroGPU Space ka free CPU copy
+ak boot                                    Termux khulte hi auto-start
+ak push ["msg"]                            Code GitHub par push -> site auto deploy
+ak update                                  GitHub se latest + relay restart
+ak build | open                            Poora app phone par local chalao
+H
+    ;;
+esac

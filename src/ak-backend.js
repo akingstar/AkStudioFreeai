@@ -1,14 +1,12 @@
 import { Client } from '@gradio/client'
 import { loadRegistry } from './ak-registry.js'
+import { getSettings } from './ak-settings.js'
+import { relayHealth, relayEnqueue, relayWait } from './ak-relay-client.js'
+import { phoneGenerate } from './ak-phone-ai.js'
+import { SPACE_ID, SPACE_BASE, makeJob, argsFor, waitSeconds, normBase } from './ak-shared.js'
 
-// Order mein try honge. Naya backend add karna ho to yahan ek line jodo.
-const BACKENDS = [
-  { name: 'ZeroGPU', id: 'Ashklyrics/AkStudioFreeai', base: 'https://ashklyrics-akstudiofreeai.hf.space' },
-  // { name: 'CPU backup', id: 'Ashklyrics/AkStudioFreeai-cpu', base: 'https://ashklyrics-akstudiofreeai-cpu.hf.space' },
-]
-const QUEUE_KEY = 'akstudio_pending_v1'
+const QUEUE_KEY = 'akstudio_pending_v2'
 const $ = id => document.getElementById(id)
-const LANG = { Hindi:'hi', English:'en', Punjabi:'pa', Urdu:'ur', Bengali:'bn', Spanish:'es', French:'fr', Japanese:'ja', 'Multi-language':'unknown' }
 
 const old = $('generate')
 const btn = old.cloneNode(true)
@@ -18,68 +16,98 @@ const notice = $('notice')
 
 const audio = document.createElement('audio')
 audio.controls = true
+audio.preload = 'metadata'
 audio.style.cssText = 'width:100%;margin:10px 0;display:none'
 document.querySelector('.preview-foot').insertAdjacentElement('beforebegin', audio)
+
+// Fallback buttons (notice ke neeche)
+const actions = document.createElement('div')
+actions.className = 'ak-fallback-actions'
+actions.hidden = true
+actions.innerHTML = `
+  <button type="button" class="secondary" id="akPhoneAi">📱 Phone AI (free, instrumental)</button>
+  <button type="button" class="secondary" id="akOpenConn">⚙ Connections</button>`
+notice.insertAdjacentElement('afterend', actions)
 
 const clients = {}
 let busy = false
 let retryTimer = null
 
-function buildJob() {
-  const prompt = $('prompt').value.trim()
-  const instrumental = document.querySelector('.mode.active')?.dataset.mode === 'instrumental'
-  return {
-    prompt,
-    caption: [prompt, $('genre').value, $('mood').value, $('voice').value, $('singing').value + ' singing'].join(', '),
-    lyrics: instrumental ? '[Instrumental]' : $('lyrics').value,
-    lang: instrumental ? 'unknown' : (LANG[$('language').value] || 'unknown'),
-    duration: Math.min(Number($('duration').value) || 600, 600),
-  }
+function say(t) { notice.textContent = t }
+
+function formJob() {
+  const voice = $('voice').value
+  return makeJob({
+    prompt: $('prompt').value,
+    title: $('songTitle').value,
+    genre: $('genre').value,
+    mood: $('mood').value,
+    voice,
+    cloneVoice: voice === '__clone__',
+    singing: $('singing').value,
+    lyrics: $('lyrics').value,
+    language: $('language').value,
+    duration: $('duration').value,
+    instrumental: document.querySelector('.mode.active')?.dataset.mode === 'instrumental' || voice === 'Instrumental only',
+    fast: window.AK_FAST !== false,
+  })
 }
 
-function argsFor(j) {
-  return [
-    'acestep-v15-turbo', 'custom', '', 'unknown',
-    j.caption, j.lyrics,
-    0, '', '', j.lang, 8, 7.0, true, '-1',
-    null, j.duration, 1, null, '', 0.0, -1,
-    'Fill the audio semantic mask based on the given conditions:',
-    1.0, 'text2music', false, 0.0, 1.0, 3.0, 'ode', '', 'mp3',
-    0.85, !window.AK_FAST, 2.0, 0, 0.9, 'NO USER INPUT',
-    true, true, true, false, true, false, false, 8,
-    'vocals', [], false,
-  ]
-}
-
-// "Try again in 23:30:50" -> seconds
-function waitSeconds(msg) {
-  const m = /in (\d+):(\d+):(\d+)/.exec(msg || '')
-  return m ? (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3]) : null
+async function clientFor(b) {
+  const key = b.id + (b.token ? '#t' : '')
+  if (!clients[key]) clients[key] = await Client.connect(b.id, b.token ? { hf_token: b.token } : undefined)
+  return { key, client: clients[key] }
 }
 
 async function runOn(b, j) {
-  clients[b.id] = clients[b.id] || await Client.connect(b.id)
-  const res = await clients[b.id].predict('/generation_api', argsFor(j))
-  const d = JSON.parse(res.data[0])
-  if (d.status !== 'Generation Complete') throw new Error(d.status || 'Generation failed')
-  const mp3 = d.all_generated_files.find(f => f.endsWith('.mp3'))
-  return `${b.base}/gradio_api/file=${mp3}`
+  const { key, client } = await clientFor(b)
+  try {
+    const res = await client.predict('/generation_api', argsFor(j))
+    const d = JSON.parse(res.data[0])
+    if (d.status !== 'Generation Complete') throw new Error(d.status || 'Generation failed')
+    const mp3 = d.all_generated_files.find(f => f.endsWith('.mp3'))
+    if (!mp3) throw new Error('Backend ne mp3 file nahi di')
+    return `${b.base}/gradio_api/file=${mp3}`
+  } catch (e) { delete clients[key]; throw e }
+}
+
+async function buildChain() {
+  const s = getSettings()
+  const chain = [{ name: 'ZeroGPU', id: SPACE_ID, base: SPACE_BASE }]
+  if (s.hfToken) chain.push({ name: 'ZeroGPU (aapka HF account)', id: SPACE_ID, base: SPACE_BASE, token: s.hfToken })
+  for (const x of s.extraBackends || []) {
+    if (x?.url) chain.push({ name: x.name || 'Custom backend', id: normBase(x.url), base: normBase(x.url) })
+  }
+  for (const r of await loadRegistry()) chain.push(r)
+  return chain
 }
 
 async function generateWithFallback(j) {
   let minWait = null
   const errors = []
-  const all = [...BACKENDS, ...(await loadRegistry())]
-  for (const b of all) {
+  for (const b of await buildChain()) {
     try {
-      notice.textContent = `${b.name} se generate ho raha hai... (30-90 sec)`
-      return await runOn(b, j)
+      say(`${b.name} se generate ho raha hai... (30-90 sec)`)
+      return { url: await runOn(b, j), via: b.name }
     } catch (e) {
       const msg = String(e?.message || e)
       errors.push(`${b.name}: ${msg}`)
-      delete clients[b.id]
       const w = waitSeconds(msg)
       if (w && (minWait === null || w < minWait)) minWait = w
+    }
+  }
+  // Sab cloud backends fail -> Termux relay (phone) agar chal raha ho
+  const s = getSettings()
+  if (s.useRelay) {
+    const h = await relayHealth(s.relayUrl)
+    if (h?.ok) {
+      say('Cloud limit par hai. Termux relay (aapka phone) job queue karke retry karega...')
+      const id = await relayEnqueue(s.relayUrl, j)
+      const url = await relayWait(s.relayUrl, id, st => {
+        const nxt = st.nextAt ? Math.max(0, Math.round((st.nextAt - Date.now()) / 60000)) : 0
+        say(`Termux relay: ${st.status}${st.tries ? ` (try ${st.tries})` : ''}${nxt ? ` · agla retry ~${nxt} min` : ''} — page khula rakho ya baad me wapas aao.`)
+      })
+      return { url, via: 'Termux relay' }
     }
   }
   const err = new Error(errors.join(' | '))
@@ -101,26 +129,38 @@ function scheduleRetry(wait) {
 async function runQueued() {
   const raw = localStorage.getItem(QUEUE_KEY)
   if (!raw || busy) return
-  const { job } = JSON.parse(raw)
-  await start(job, true)
+  await start(JSON.parse(raw).job, true)
 }
+
+export function setSong(url, meta = {}) {
+  audio.src = url
+  audio.style.display = 'block'
+  audio.load()
+  window.dispatchEvent(new CustomEvent('ak:song-ready', { detail: { url, ...meta } }))
+}
+window.AK = Object.assign(window.AK || {}, { audio, setSong, say, busy: () => busy })
+const wave = document.querySelector('.waveform')
+audio.addEventListener('play', () => wave?.classList.add('playing'))
+;['pause', 'ended'].forEach(ev => audio.addEventListener(ev, () => wave?.classList.remove('playing')))
 
 async function start(j, fromQueue = false) {
   busy = true
   btn.disabled = true
+  actions.hidden = true
   label.textContent = 'Generating...'
   try {
-    const url = await generateWithFallback(j)
+    const { url, via } = await generateWithFallback(j)
     localStorage.removeItem(QUEUE_KEY)
-    audio.src = url
-    audio.style.display = 'block'
-    audio.load()
     $('previewDescription').textContent = j.prompt
-    notice.textContent = fromQueue ? '✓ Queued song ready!' : '✓ Song ready! Play karke suno.'
+    setSong(url, { job: j, via, queued: fromQueue })
+    say(`✓ Song ready (${via}).` + (j.caption.includes('clear natural lead vocals') ? ' Voice clone chal raha hai...' : ' Play karke suno.'))
   } catch (e) {
     queueJob(j, e.wait)
     const mins = e.wait ? Math.ceil(e.wait / 60) : 60
-    notice.textContent = `Sab backends busy/limit par hain. Tumhara song queue mein hai, ~${mins} min baad apne aap retry hoga (page khula rakho). Details: ${e.message.slice(0, 160)}`
+    say(`Sab cloud backends limit par hain. Song queue me hai (~${mins} min baad auto-retry, page khula rakho). ` +
+        `Abhi chahiye to "Phone AI" try karo, ya Connections me apna HF token / Termux relay jodo. ` +
+        `Detail: ${String(e.message).slice(0, 140)}`)
+    actions.hidden = false
   } finally {
     busy = false
     btn.disabled = false
@@ -130,21 +170,37 @@ async function start(j, fromQueue = false) {
 
 btn.addEventListener('click', () => {
   if (busy) return
-  const j = buildJob()
-  if (!j.prompt) { notice.textContent = 'Please enter a music description first.'; $('prompt').focus(); return }
+  const j = formJob()
+  if (!j.prompt) { say('Please enter a music description first.'); $('prompt').focus(); return }
   start(j)
 })
 
-// page khulte hi pending job ho to retry schedule karo
+$('akPhoneAi').addEventListener('click', async () => {
+  if (busy) return
+  const j = formJob()
+  if (!j.prompt) { say('Pehle music description likho.'); return }
+  busy = true
+  btn.disabled = true
+  try {
+    const url = await phoneGenerate(`${j.prompt}, ${j.genre}, ${j.mood}`, 15, say)
+    setSong(url, { job: j, via: 'Phone AI', noClone: true })
+    say('✓ Phone AI se instrumental ready (lyrics/vocals ke liye cloud ya relay chahiye).')
+  } catch (e) {
+    say('Phone AI nahi chala: ' + String(e.message || e).slice(0, 160) + ' — purane/slow phone par ye aksar fail hota hai.')
+  } finally { busy = false; btn.disabled = false }
+})
+$('akOpenConn').addEventListener('click', () => document.querySelector('[data-page="connect"]')?.click())
+
+// Page khulte hi pending job ho to retry schedule karo
 try {
   const raw = localStorage.getItem(QUEUE_KEY)
   if (raw) {
     const { at, wait } = JSON.parse(raw)
     const left = Math.max(0, (wait || 3600) - (Date.now() - at) / 1000)
-    notice.textContent = 'Ek pending song queue mein hai, quota aate hi retry hoga.'
+    say('Ek pending song queue me hai, quota aate hi retry hoga.')
     scheduleRetry(left)
   }
 } catch {}
 
-// AK_WARMUP: page khulte hi connection ready rakho
-Client.connect(BACKENDS[0].id).then(c => { clients[BACKENDS[0].id] = c }).catch(() => {})
+// Warmup: connection ready rakho
+Client.connect(SPACE_ID).then(c => { clients[SPACE_ID] = c }).catch(() => {})

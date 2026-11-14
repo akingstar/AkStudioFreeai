@@ -1,0 +1,5 @@
+# Seed-VC ki apni requirements (upstream ke saath sync rehti hain)
+-r https://raw.githubusercontent.com/Plachtaa/seed-vc/main/requirements.txt
+demucs
+soundfile
+librosa

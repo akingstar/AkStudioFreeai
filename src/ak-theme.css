@@ -1,0 +1,70 @@
+/* AkStudio Pro theme: accent, glass, clean navigation (floating buttons hata diye) */
+:root{
+  --ak-a:#8b5cf6; --ak-b:#22d3ee; --ak-c:#f472b6;
+  --ak-grad:linear-gradient(135deg,var(--ak-a),var(--ak-b));
+}
+
+/* 1) Floating launcher buttons ab sidebar pages se khulte hain */
+#ak-voice-launch,#ak-voice-model-launch,#ak-mixer-launch,#ak-effects-launch,#ak-stem-launch,
+#ak-ultimate-launch,#ak-mastering-launch,#ak-songwriting-launch,#ak-multilingual-launch,
+#ak-suno-hub,#ak-engine-launch,#ak-profile-launch,#ak-cloud-launch{display:none!important}
+
+/* 2) Background + brand */
+body{background:radial-gradient(1100px 520px at 85% -8%,#8b5cf622,transparent 60%),radial-gradient(800px 420px at -5% 105%,#22d3ee14,transparent 55%),#080808}
+.brand-icon{background:var(--ak-grad)!important;color:#fff!important;box-shadow:0 6px 22px #8b5cf655}
+.hero h1 span{background:var(--ak-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav.active{box-shadow:inset 3px 0 var(--ak-a)!important;background:linear-gradient(90deg,#8b5cf61f,#202020 70%)!important}
+.live-dot{background:var(--ak-b)!important;box-shadow:0 0 0 4px #22d3ee22}
+
+/* 3) Panels / buttons */
+.panel{background:linear-gradient(180deg,#131313,#0e0e0e);border-color:#2a2a2a;box-shadow:0 10px 40px #0006}
+.generate{background:var(--ak-grad)!important;color:#fff!important;box-shadow:0 8px 26px #8b5cf644;transition:transform .15s,filter .15s}
+.generate:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.generate:disabled{filter:grayscale(.6) brightness(.8);transform:none;cursor:wait}
+.secondary{background:#1c1c1c!important;color:#eee!important;border:1px solid #333!important;transition:border-color .15s,background .15s}
+.secondary:hover{border-color:var(--ak-a)!important;background:#222!important}
+.mode.active{background:var(--ak-grad)!important;color:#fff!important;border-color:transparent!important}
+.text-input:focus,.lyrics:focus,.prompt:focus,select:focus{border-color:var(--ak-a)!important;box-shadow:0 0 0 3px #8b5cf622}
+input[type=range]{accent-color:var(--ak-a)}
+.coming.live{color:#0b0b0b;background:var(--ak-b);border-color:var(--ak-b);font-weight:800}
+.tool-link{width:100%;background:none;border:0;border-top:1px solid #252525;color:inherit;text-align:left}
+.tool-link:hover{background:#ffffff08}
+
+/* 4) Waveform animation jab gaana chal raha ho */
+.waveform.playing i{animation:akwave 1s ease-in-out infinite;background:var(--ak-grad);opacity:1}
+.waveform.playing i:nth-child(3n){animation-delay:-.3s}.waveform.playing i:nth-child(3n+1){animation-delay:-.6s}
+@keyframes akwave{0%,100%{transform:scaleY(.45)}50%{transform:scaleY(1.25)}}
+.art-circle{animation:akspin 18s linear infinite}
+@keyframes akspin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.waveform.playing i,.art-circle{animation:none}}
+
+/* 5) Fallback + clone helpers */
+.ak-fallback-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ak-fallback-actions[hidden],.ak-clone-toggle[hidden]{display:none}
+.ak-fallback-actions .secondary{margin-top:0}
+.ak-clone-toggle{display:flex;gap:6px;margin:0 0 10px}
+.ak-clone-toggle .secondary{margin-top:0;flex:1}
+.ak-clone-toggle .secondary.active{background:var(--ak-grad)!important;border-color:transparent!important;color:#fff!important}
+.clone-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.clone-help{font-size:12px;line-height:1.6;margin:0 0 14px}
+.clone-help code,.clone-foot code{background:#1d1d1d;border:1px solid #2f2f2f;border-radius:4px;padding:1px 5px}
+.clone-line{background:#0a0a0a;border:1px dashed #3a3a3a;border-radius:8px;padding:16px;font-size:15px;line-height:1.7;margin-bottom:12px}
+.clone-meter{height:6px;background:#1a1a1a;border-radius:5px;overflow:hidden;margin-bottom:14px}
+.clone-meter i{display:block;height:100%;width:0;background:var(--ak-grad);transition:width .06s}
+.clone-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+.clone-actions .generate{width:auto;padding:12px 22px}
+.clone-actions .secondary,.clone-upload{margin-top:0;padding:12px 16px;cursor:pointer}
+.clone-consent{display:flex;gap:10px;align-items:flex-start;font-size:11px;color:#aaa;line-height:1.5;margin:14px 0}
+.clone-consent input{width:18px;height:18px;flex-shrink:0;accent-color:var(--ak-a)}
+#clonePreview{width:100%;margin:6px 0 14px}
+.clone-foot{margin-top:22px;font-size:11px;line-height:1.7}
+.ak-conn-row{display:grid;grid-template-columns:22px 1fr;gap:2px 8px;padding:10px 0;border-bottom:1px solid #222;font-size:12px}
+.ak-conn-row small{grid-column:2;color:#777;overflow-wrap:anywhere}
+.ak-code{background:#0a0a0a;border:1px solid #2c2c2c;border-radius:8px;padding:12px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;color:#9ee7f7;margin:0 0 6px}
+
+/* 6) Mobile: bada tap-area, sticky generate */
+@media(max-width:900px){.clone-grid{grid-template-columns:1fr}}
+@media(max-width:700px){
+  .generate-area{position:sticky;bottom:0;z-index:4;background:linear-gradient(180deg,transparent,#080808 28%);padding:14px 0 10px;margin-top:18px}
+  .nav{padding:15px 12px}
+}
