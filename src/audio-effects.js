@@ -88,7 +88,7 @@
     $('ak-effects-status').textContent = file.name + ' loaded.';
   };
 
-  const controls = ['bass','mid','treble','reverb','compression','output'];
+  const controls = ['ak-bass','ak-mid','ak-treble','ak-reverb','ak-compression','ak-output'];
   controls.forEach(name => {
     $(name).oninput = () => {
       $(name + '-value').textContent = $(name).value;
@@ -141,7 +141,7 @@
 
   $('ak-effects-reset').onclick = () => {
     controls.forEach(name => {
-      const value = name === 'output' ? 100 : 0;
+      const value = name === 'ak-output' ? 100 : 0;
       $(name).value = value;
       $(name+'-value').textContent = value;
     });

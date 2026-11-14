@@ -24,6 +24,7 @@ async function checkAll() {
     ['ZeroGPU music (primary)', SPACE_BASE, 'space'],
     ['Termux relay (aapka phone)', s.relayUrl, 'relay'],
     ['Voice clone Space', s.voiceMode === 'official' ? spaceBase(OFFICIAL_SEEDVC) : spaceBase(s.voiceSpace), 'space'],
+    ...(s.proApiUrl ? [['Pro voice API', s.proApiUrl, 'api']] : []),
   ]
   for (const x of s.extraBackends || []) rows.push([x.name || 'Custom', x.url, 'space'])
   for (const r of await loadRegistry()) rows.push([r.name + ' (registry)', r.base, 'space'])
@@ -31,6 +32,10 @@ async function checkAll() {
   box.innerHTML = rows.map(r => `<div class="ak-conn-row"><span>🟡</span><b>${esc(r[0])}</b><small>${esc(r[1])}</small></div>`).join('')
   const res = await Promise.all(rows.map(async ([, url, kind]) => {
     if (kind === 'relay') { const h = await relayHealth(url, 2500); return h?.ok ? 'ok' : 'off' }
+    if (kind === 'api') {
+      try { const r = await fetch(url, { method: 'OPTIONS', signal: AbortSignal.timeout(8000), cache: 'no-store' }); return r.ok || r.status === 405 ? 'ok' : 'down' }
+      catch { return 'down' }
+    }
     return ping(url)
   }))
   box.innerHTML = rows.map((r, i) => `<div class="ak-conn-row"><span>${dot(res[i])}</span><b>${esc(r[0])}</b><small>${esc(r[1])}${res[i] === 'off' ? ' — chalu nahi (Termux me: ak start)' : ''}</small></div>`).join('')
@@ -58,6 +63,13 @@ function render() {
       <select id="connVoiceMode"><option value="own" ${s.voiceMode === 'own' ? 'selected' : ''}>Mera Voice Space (vocals alag + clone + mix)</option><option value="official" ${s.voiceMode === 'official' ? 'selected' : ''}>Official Seed-VC Space (sirf acapella convert)</option></select>
       <label class="field-label" style="margin-top:12px">MERA VOICE SPACE ID</label>
       <input id="connVoiceSpace" class="text-input" value="${esc(s.voiceSpace)}">
+      <label class="field-label" style="margin-top:12px">DEFAULT QUALITY STEPS (4–50)</label>
+      <input id="connSteps" class="text-input" type="number" min="4" max="50" value="${esc(s.voiceSteps)}">
+      <p class="subtle clone-help" style="margin-top:12px">Optional paid/pro API (jab free quota khatam ho). Expected: POST JSON <code>{audio_base64, reference_base64, pitch, separate}</code> → <code>{mixed_base64, vocals_base64?, instrumental_base64?}</code>.</p>
+      <label class="field-label">PRO API URL</label>
+      <input id="connProUrl" class="text-input" value="${esc(s.proApiUrl)}" placeholder="https://api.example.com/voice/convert">
+      <label class="field-label" style="margin-top:8px">PRO API KEY</label>
+      <input id="connProKey" class="text-input" type="password" autocomplete="off" value="${esc(s.proApiKey)}">
 
       <div class="divider"></div>
       <div class="panel-head"><div><span class="step">04</span><b>Extra backends</b></div></div>
@@ -92,6 +104,9 @@ function render() {
       useRelay: $('connUseRelay').checked,
       voiceMode: $('connVoiceMode').value,
       voiceSpace: $('connVoiceSpace').value.trim() || getSettings().voiceSpace,
+      voiceSteps: Math.min(50, Math.max(4, Number($('connSteps').value) || 25)),
+      proApiUrl: $('connProUrl').value.trim(),
+      proApiKey: $('connProKey').value.trim(),
       extraBackends: extra,
     })
     $('connNotice').textContent = '✓ Save ho gaya.'

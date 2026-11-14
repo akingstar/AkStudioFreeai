@@ -1,5 +1,12 @@
-# Seed-VC ki apni requirements (upstream ke saath sync rehti hain)
--r https://raw.githubusercontent.com/Plachtaa/seed-vc/main/requirements.txt
-demucs
-soundfile
+# Seed-VC v2 runtime deps (torch/gradio HF image se aate hain, pin nahi karte)
+numpy<2
+scipy
 librosa
+soundfile
+pydub
+munch
+einops
+transformers>=4.40,<5
+huggingface-hub
+pyyaml
+demucs

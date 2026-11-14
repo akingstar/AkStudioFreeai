@@ -70,7 +70,7 @@
           </section>
         </div>
 
-        <div class="ak-sw-actions">
+        <div class="ak-sw-actions" id="ak-sw-actions">
           <button id="ak-sw-add">＋ Add section</button>
           <button id="ak-sw-prompt">Build AI lyrics prompt</button>
           <button id="ak-sw-transfer">Send lyrics to generator</button>

@@ -171,15 +171,32 @@ const pages = {
 }
 const PAGE_SECTIONS = { create: 'createPage', clone: 'clonePage', connect: 'connectPage' }
 
+function resetOtherPanel(page) {
+  const panel = $('otherPage').querySelector('.empty-state')
+  panel.className = 'panel empty-state'
+  panel.innerHTML = `
+    <div class="empty-icon">♫</div>
+    <h2 id="emptyTitle"></h2>
+    <p id="emptyText"></p>
+    <button class="secondary" id="backCreate">← Back to Create Music</button>`
+  $('emptyTitle').textContent = page === 'library' ? 'Your music library is waiting' : page === 'voices' ? 'Your voice studio is waiting' : 'Your audio tools are waiting'
+  $('emptyText').textContent = page === 'library'
+    ? 'Saved projects and generated songs appear here.'
+    : page === 'voices'
+      ? 'Record voice samples, check quality and open voice workflows here.'
+      : 'Mix, master and process audio in your browser.'
+  $('backCreate').addEventListener('click', () => document.querySelector('[data-page="create"]').click())
+}
+
 function showPage(page) {
   document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b.dataset.page === page))
   $('crumb').textContent = pages[page][0]
   const sec = PAGE_SECTIONS[page] || 'otherPage'
   ;['createPage', 'clonePage', 'connectPage', 'otherPage'].forEach(id => $(id).classList.toggle('hidden', id !== sec))
   if (sec === 'otherPage') {
+    resetOtherPanel(page)
     $('otherTitle').textContent = pages[page][1]
     $('otherText').textContent = pages[page][2]
-    $('emptyTitle').textContent = page === 'library' ? 'Your music library is waiting' : page === 'voices' ? 'Your voice studio is waiting' : 'Your audio tools are waiting'
   }
   $('sidebar').classList.remove('open')
   window.scrollTo({ top: 0 })
@@ -192,8 +209,6 @@ document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]')
   if (go) document.querySelector(`.nav[data-page="${go.dataset.go}"]`)?.click()
 })
-
-$('backCreate').addEventListener('click', () => document.querySelector('[data-page="create"]').click())
 
 // ===== AKSTUDIO STAGE 3: MY LIBRARY =====
 const AK_KEY = 'akstudiofreeai_projects_v1';

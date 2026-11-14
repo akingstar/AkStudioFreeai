@@ -8,6 +8,9 @@ const DEFAULTS = {
   extraBackends: [],                   // [{name,url}] user ke apne Spaces
   voiceMode: 'own',                    // own | official
   voiceSpace: VOICE_SPACE_DEFAULT,     // apna voice Space id
+  proApiUrl: '',                       // optional paid/proxy voice API (POST base64)
+  proApiKey: '',
+  voiceSteps: 25,                      // Seed-VC diffusion steps
 }
 
 export function getSettings() {

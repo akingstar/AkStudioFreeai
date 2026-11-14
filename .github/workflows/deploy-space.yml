@@ -1,0 +1,67 @@
+name: Deploy Voice Space to Hugging Face
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'spaces/ak-voice/**'
+      - '.github/workflows/deploy-space.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: hf-voice-space
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Ensure Space exists
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+          SPACE_NAME: ${{ vars.VOICE_SPACE_NAME || 'AkStudioFreeai-voice' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HF_TOKEN:-}" ]; then echo "::error::Secret HF_TOKEN missing (HF write token)"; exit 1; fi
+          if [ -z "${HF_USERNAME:-}" ]; then echo "::error::Variable HF_USERNAME missing"; exit 1; fi
+          code=$(curl -s -o /tmp/create.json -w '%{http_code}' -X POST https://huggingface.co/api/repos/create \
+            -H "Authorization: Bearer $HF_TOKEN" -H 'Content-Type: application/json' \
+            -d "{\"type\":\"space\",\"name\":\"$SPACE_NAME\",\"sdk\":\"gradio\",\"private\":false}")
+          echo "create HTTP $code"; cat /tmp/create.json || true; echo
+          case "$code" in
+            200|201|409) ;;
+            *) echo "::error::Space create failed (HTTP $code)"; exit 1 ;;
+          esac
+          echo "SPACE_ID=$HF_USERNAME/$SPACE_NAME" >> "$GITHUB_ENV"
+
+      - name: Push Space files
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME }}
+        run: |
+          set -euo pipefail
+          git config --global user.name akstudio-bot
+          git config --global user.email akstudio@users.noreply.huggingface.co
+          git clone "https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$SPACE_ID" space
+          rsync -a --delete --exclude .git --exclude .gitattributes spaces/ak-voice/ space/
+          cd space
+          if [ -z "$(git status --porcelain)" ]; then echo "Space already up to date"; exit 0; fi
+          git add -A
+          git commit -m "Deploy from ${GITHUB_SHA::7}"
+          git push
+
+      - name: Restart Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          curl -s -o /tmp/restart.json -w 'restart HTTP %{http_code}\n' -X POST \
+            "https://huggingface.co/api/spaces/$SPACE_ID/restart" \
+            -H "Authorization: Bearer $HF_TOKEN" || true
+          cat /tmp/restart.json || true

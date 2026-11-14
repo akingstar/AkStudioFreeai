@@ -42,6 +42,10 @@ ak push "AkStudio pro"      # push to GitHub; Actions deploys the site
 ak status                   # relay check;  ak help for everything
 ```
 
+GitHub-only route: add secret `HF_TOKEN` (HF write token) and variables `HF_USERNAME`,
+`VITE_VOICE_SPACE` (`<user>/AkStudioFreeai-voice`) — then every push to `main` deploys
+both the site and the voice Space. Details: [docs/VOICE_CLONE.md](docs/VOICE_CLONE.md).
+
 If the folder is not yet a git clone: `cd ~/AkStudioFreeai && git init -b main && git remote add origin https://github.com/akingstar/AkStudioFreeai.git && git pull origin main --allow-unrelated-histories`.
 
 ## Voice clone, step by step
@@ -50,7 +54,10 @@ If the folder is not yet a git clone: `cd ~/AkStudioFreeai && git init -b main &
 2. **Create Music** → Vocal direction → Voice → *My cloned voice* → Generate. The song is made, then converted to your voice automatically.
 3. Or use *Gaana/vocal apni awaaz me badlo* on the Voice Clone page to convert any song or acapella.
 
-Voice backends: your own Space (`ak space voice`; free CPU works but is slow, GPU is fast) or the official `Plachta/Seed-VC` Space (acapella only).
+Voice backends: your own Space (`ak space voice`, or auto-deployed by
+`.github/workflows/deploy-space.yml`; free CPU works but is slow, ZeroGPU is fast), the
+official `Plachta/Seed-VC` Space (acapella only), and an optional Pro API (your URL +
+key). Full setup and API contract: [docs/VOICE_CLONE.md](docs/VOICE_CLONE.md).
 
 ## Honest limits
 
