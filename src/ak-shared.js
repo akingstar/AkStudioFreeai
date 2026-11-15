@@ -24,6 +24,7 @@ export function makeJob(f) {
     lyrics: instrumental ? '[Instrumental]' : String(f.lyrics || ''),
     lang: instrumental ? 'unknown' : (LANG[f.language] || 'unknown'),
     duration: Math.max(10, Math.min(Number(f.duration) || 60, 600)),
+    engine: f.engine || 'auto',
     fast: f.fast !== false,
   }
 }
