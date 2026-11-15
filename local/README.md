@@ -6,9 +6,11 @@ quota — just slower on CPU.
 
 ## One-time setup
 
-Requirements: Git, [Python 3.10–3.12](https://www.python.org/downloads/), and `ffmpeg`.
+Requirements: Git, [Python 3.10–3.12](https://www.python.org/downloads/), `ffmpeg`, aur
+**8 GB+ RAM** (CPU mode me Seed-VC ~5–6 GB free maangta hai; 4 GB PC par OOM hota hai).
 
-* Windows: `winget install Gyan.FFmpeg` (ya ffmpeg.org se zip), phir terminal restart.
+* Windows: `winget install Python.Python.3.12` aur `winget install Gyan.FFmpeg` (script
+  per-user installs auto-detect karta hai; ffmpeg ko `local\tools\ffmpeg\bin` me bhi rakh sakte ho).
 * Linux: `sudo apt install ffmpeg`
 * macOS: `brew install ffmpeg`
 

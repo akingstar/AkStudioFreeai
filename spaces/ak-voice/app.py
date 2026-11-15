@@ -26,6 +26,28 @@ import numpy as np
 import soundfile as sf
 import torch
 
+# Gradio localhost par cross-origin ko block karta hai; GitHub Pages site ko allow karo.
+# Revert: AK_ALLOWED_ORIGINS ko khali rakho.
+try:
+    import gradio.route_utils as _ru
+    import gradio.routes as _grr
+
+    _ALLOWED_ORIGINS = {h.strip().lower() for h in os.getenv("AK_ALLOWED_ORIGINS", "akingstar.github.io").split(",") if h.strip()}
+    _orig_is_valid = _ru.CustomCORSMiddleware.is_valid_origin
+
+    class _Cors(_ru.CustomCORSMiddleware):
+        def is_valid_origin(self, request_headers):
+            try:
+                if _ru.get_hostname(request_headers["Origin"]).lower() in _ALLOWED_ORIGINS:
+                    return True
+            except Exception:
+                pass
+            return _orig_is_valid(self, request_headers)
+
+    _grr.CustomCORSMiddleware = _Cors
+except Exception as _e:
+    print(f"cors patch skipped: {_e}", flush=True)
+
 try:
     import spaces
     GPU = spaces.GPU
@@ -70,7 +92,8 @@ def _prewarm_weights():
         print(f"prewarm disabled: {e}", flush=True)
 
 
-threading.Thread(target=_prewarm_weights, daemon=True).start()
+if os.getenv("AK_PREWARM", "1") not in ("0", "false", "False"):
+    threading.Thread(target=_prewarm_weights, daemon=True).start()
 
 _VC = None
 

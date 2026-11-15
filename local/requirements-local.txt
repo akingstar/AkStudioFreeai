@@ -2,6 +2,7 @@
 #
 # Same Gradio app as spaces/ak-voice, but on your own machine.
 # torch/torchaudio alag install hote hain (GPU/CPU version), isliye is file me nahi.
+gradio>=5,<6
 numpy<2
 scipy
 librosa
