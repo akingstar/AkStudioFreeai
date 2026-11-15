@@ -80,7 +80,7 @@ app.innerHTML = `
 
           <div class="generate-area">
             <button id="generate" class="generate">✦ <span>Generate song</span> <span class="arrow">→</span></button>
-            <p>ACE-Step 1.5 + ACE-Step v1 built-in hain. Quota khatam ho to apne aap doosre engine par jayega.</p>
+            <p>ACE-Step 1.5 aapke apne Space par chalta hai; v1 official Space par. Ek fail ho to doosra apne aap try hoga.</p>
           </div>
           <div id="notice" class="notice" role="status">Studio ready. Description likho aur Generate dabao.</div>
         </section>
