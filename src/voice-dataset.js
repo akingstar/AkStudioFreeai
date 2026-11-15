@@ -120,7 +120,7 @@ import JSZip from "jszip";
       <button id="ak-vb-close">Close ×</button>
       <h2>🎙 My AI Voice Dataset</h2>
       <p>Record your own singing voice. Read or sing each prompt naturally, preferably 2–3 times with different expressions.</p>
-      <p><b>Dataset target:</b> Start with 10–30 minutes of clean recordings. More consistent, varied samples can help later training.</p>
+      <p><b>Training ki zaroorat nahi:</b> 10–25 sec ka saaf sample hi kaafi hai — wo seedha Voice Clone me zero-shot profile banta hai. Colab ya koi install nahi.</p>
       <label for="ak-vb-prompt">Choose a recording prompt</label>
       <select id="ak-vb-prompt"></select>
 
@@ -132,6 +132,7 @@ import JSZip from "jszip";
       <button id="ak-vb-record">● Start Recording</button>
       <button id="ak-vb-stop" disabled>■ Stop & Save</button>
       <button id="ak-vb-export">Export Dataset ZIP</button>
+      <button id="ak-vb-clone">🎤 Voice Clone kholo (training-free)</button>
 
       <p id="ak-vb-status">Ready. Allow microphone access when asked.</p>
       <div id="ak-vb-samples"></div>
@@ -156,6 +157,10 @@ import JSZip from "jszip";
     panel.querySelector("#ak-vb-record").addEventListener("click", startRecording);
     panel.querySelector("#ak-vb-stop").addEventListener("click", stopRecording);
     panel.querySelector("#ak-vb-export").addEventListener("click", exportDataset);
+    panel.querySelector("#ak-vb-clone").addEventListener("click", () => {
+      panel.classList.remove("open");
+      document.querySelector('.nav[data-page="clone"]')?.click();
+    });
   }
 
   async function startRecording() {

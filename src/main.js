@@ -167,7 +167,7 @@ const pages = {
   clone: ['Voice Clone'],
   connect: ['Connections'],
   library: ['My Library', 'Your music library', 'Your saved tracks and creations will live here.'],
-  voices: ['Voice Dataset', 'Voice dataset studio', 'Record and export your voice samples for training.'],
+  voices: ['Voice Dataset', 'Voice dataset studio', 'Voice samples record karo aur seedha Voice Clone me zero-shot use karo — training ya Colab nahi.'],
   tools: ['Audio Tools', 'Your audio toolbox', 'Separation, mastering, remixing and audio processing tools.']
 }
 const PAGE_SECTIONS = { create: 'createPage', clone: 'clonePage', connect: 'connectPage' }
