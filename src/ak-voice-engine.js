@@ -132,7 +132,10 @@ async function runOwnSpace({ source, ref, separate, pitch, steps }, onStatus, on
   const space = s.voiceSpace
   if (!space) throw new Error('Voice Space ID set nahi hai (Connections page).')
   onStatus?.(`Mera Voice Space (${space}) se connect... (sleeping Space 1-3 min le sakta hai)`)
-  const client = await connect(space, s.hfToken)
+  const client = await Promise.race([
+    connect(space, s.hfToken),
+    new Promise((_, rej) => setTimeout(() => rej(new Error('Voice Space se connect timeout — Space build/runtime error me ho sakta hai')), 25000)),
+  ])
   onStatus?.(separate ? 'Demucs + Seed-VC + mix chal raha hai...' : 'Seed-VC convert ho raha hai...')
   const args = [fileOf(source, 'source.mp3'), fileOf(ref, 'reference.wav'), Number(pitch) || 0, Number(steps) || 25, !!separate]
   const data = await predictWithProgress(client, '/clone_song', args, onProgress)
@@ -151,12 +154,7 @@ async function runOfficial({ source, ref, pitch, steps }, onStatus, onProgress) 
   onStatus?.('Official Seed-VC Space (acapella only) se convert ho raha hai...')
   const client = await connect(OFFICIAL_SEEDVC, getSettings().hfToken)
   const args = [fileOf(source, 'source.wav'), fileOf(ref, 'ref.wav'), Number(steps) || 25, 1.0, 0.7, true, false, Number(pitch) || 0]
-  let data
-  try {
-    data = await predictWithProgress(client, '/convert_voice_v1_wrapper', args, onProgress)
-  } catch {
-    data = await predictWithProgress(client, '/predict', args, onProgress)
-  }
+  const data = await predictWithProgress(client, '/predict_1', args, onProgress)
   const u = urlOf(data[1]) || urlOf(data[0])
   if (!u) throw new Error('Official Space ne audio nahi diya (quota/busy).')
   const out = await fetchBlob(u)
@@ -232,6 +230,8 @@ export async function convertVoice({ source, ref, separate = true, pitch = 0, st
   if (s.localMode !== 'only') {
     if (s.voiceMode === 'official' || s.useOfficial) chain.push({ name: 'Official Seed-VC', run: runOfficial })
     chain.push({ name: 'Mera Voice Space', run: runOwnSpace })
+    // Apna Space down/quota par ho to official Seed-VC bhi try karo (acapella only)
+    if (s.voiceMode !== 'official') chain.push({ name: 'Official Seed-VC', run: runOfficial })
   }
   if (localReady && s.localMode !== 'first') chain.push({ name: 'Local engine', run: runLocal })
   if (s.proApiUrl) chain.push({ name: 'Pro API', run: runPro })

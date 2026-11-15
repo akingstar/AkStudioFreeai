@@ -1,7 +1,7 @@
 import { getSettings, saveSettings } from './ak-settings.js'
 import { relayHealth } from './ak-relay-client.js'
 import { loadRegistry } from './ak-registry.js'
-import { SPACE_BASE, OFFICIAL_SEEDVC } from './ak-shared.js'
+import { SPACE_BASE, ACE_V1_BASE, OFFICIAL_SEEDVC } from './ak-shared.js'
 
 const $ = id => document.getElementById(id)
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -21,7 +21,8 @@ function dot(state) { return state === 'ok' ? '🟢' : state === 'down' ? '🔴'
 async function checkAll() {
   const s = getSettings()
   const rows = [
-    ['ZeroGPU music (primary)', SPACE_BASE, 'space'],
+    ['ZeroGPU music — ACE-Step 1.5', SPACE_BASE, 'space'],
+    ['ACE-Step v1 (classic engine)', ACE_V1_BASE, 'space'],
     ['Termux relay (aapka phone)', s.relayUrl, 'relay'],
     ['Voice clone Space', s.voiceMode === 'official' ? spaceBase(OFFICIAL_SEEDVC) : spaceBase(s.voiceSpace), 'space'],
     ...(s.localUrl && s.localMode !== 'off' ? [['Local engine (aapka PC)', s.localUrl, 'space', 'start karo: local\\start-windows.ps1 (Linux/Termux: local/start-linux.sh)']] : []),

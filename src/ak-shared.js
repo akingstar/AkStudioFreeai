@@ -3,6 +3,10 @@ export const SPACE_ID = 'Ashklyrics/AkStudioFreeai'
 export const SPACE_BASE = 'https://ashklyrics-akstudiofreeai.hf.space'
 export const OFFICIAL_SEEDVC = 'Plachta/Seed-VC'
 
+// ACE-Step v1 (classic 3.5B) — second engine, same free ZeroGPU Space
+export const ACE_V1_SPACE_ID = 'ACE-Step/ACE-Step'
+export const ACE_V1_BASE = 'https://ace-step-ace-step.hf.space'
+
 export const LANG = {
   Hindi: 'hi', English: 'en', Punjabi: 'pa', Urdu: 'ur', Bengali: 'bn',
   Spanish: 'es', French: 'fr', Japanese: 'ja', 'Multi-language': 'unknown',
@@ -36,6 +40,21 @@ export function argsFor(j) {
     0.85, !j.fast, 2.0, 0, 0.9, 'NO USER INPUT',
     true, true, true, false, true, false, false, 8,
     'vocals', [], false,
+  ]
+}
+
+// ACE-Step v1 (classic) Gradio /__call__ ke positional args
+export function argsForV1(j) {
+  return [
+    Math.max(10, Math.min(Number(j.duration) || 60, 240)),
+    j.caption,
+    j.lyrics === '[Instrumental]' ? '[instrumental]' : j.lyrics,
+    j.fast ? 27 : 60,
+    15.0, 'euler', 'apg', 10.0,
+    '', 0.5, 0.0, 3.0,
+    true, false, true, '',
+    0.0, 0.0,
+    false, 0.5, null, 'none',
   ]
 }
 

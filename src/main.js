@@ -64,6 +64,7 @@ app.innerHTML = `
             <div><label class="field-label">MUSIC STYLE</label><select id="genre"><option>Pop</option><option>Bollywood</option><option>Romantic</option><option>Hip Hop</option><option>Rock</option><option>Classical</option><option>EDM</option><option>Lo-fi</option><option>Qawwali</option><option>Acoustic</option><option>Jazz</option><option>Folk</option></select></div>
             <div><label class="field-label">MOOD</label><select id="mood"><option>Emotional</option><option>Romantic</option><option>Energetic</option><option>Sad</option><option>Peaceful</option><option>Dark</option><option>Hopeful</option><option>Epic</option></select></div>
             <div><label class="field-label">LANGUAGE</label><select id="language"><option>Hindi</option><option>English</option><option>Punjabi</option><option>Urdu</option><option>Bengali</option><option>Spanish</option><option>French</option><option>Japanese</option><option>Multi-language</option></select></div>
+            <div><label class="field-label">MUSIC ENGINE</label><select id="engine"><option value="auto" selected>Auto — 1.5, phir v1</option><option value="15">ACE-Step 1.5 (fast)</option><option value="v1">ACE-Step v1 (classic)</option></select></div>
             <div><label class="field-label">SONG LENGTH</label><select id="duration"><option value="30">30 seconds (fastest)</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option><option value="240">4 minutes</option><option value="300">5 minutes (needs more quota)</option></select></div>
           </div>
 
@@ -79,7 +80,7 @@ app.innerHTML = `
 
           <div class="generate-area">
             <button id="generate" class="generate">✦ <span>Generate song</span> <span class="arrow">→</span></button>
-            <p>Free AI music. Quota khatam ho to apne aap agle backend par jayega.</p>
+            <p>ACE-Step 1.5 + ACE-Step v1 built-in hain. Quota khatam ho to apne aap doosre engine par jayega.</p>
           </div>
           <div id="notice" class="notice" role="status">Studio ready. Description likho aur Generate dabao.</div>
         </section>
@@ -248,6 +249,7 @@ akSave.addEventListener('click', () => {
     mood: $('mood').value,
     language: $('language').value,
     duration: $('duration').value,
+    engine: $('engine')?.value || 'auto',
     voice: $('voice').value,
     singing: $('singing').value,
     intensity: $('intensity').value,
@@ -336,7 +338,7 @@ $('otherPage').querySelector('.empty-state').addEventListener('click', e => {
     $('lyrics').value = p.lyrics || '';
     $('prompt').value = p.prompt || '';
 
-    ['genre','mood','language','duration','voice','singing',
+    ['genre','mood','language','duration','voice','singing','engine',
      'intensity','pitch','emotion'].forEach(key => {
       if (p[key] !== undefined) $(key).value = p[key];
     });

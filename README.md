@@ -7,6 +7,7 @@ Free AI music studio in your browser: text-to-music, **built-in voice cloning**,
 ## What's new in Pro
 
 - **Voice Clone page (built in):** record 10–25 s of your voice (or upload), save it, then pick *My cloned voice* on Create Music. Pipeline: ACE-Step song → Demucs vocal split → Seed-VC zero-shot singing conversion → mix. No training step. Compare *Original* vs *My voice*.
+- **Two music engines, both free:** *ACE-Step 1.5* (fast, 2 B turbo, your own Space) and *ACE-Step v1* (classic 3.5 B, official Space) selectable on Create Music → *Music engine*; *Auto* tries 1.5 first and falls back to v1 when quota runs out.
 - **Quota-proof generation chain:** ZeroGPU → your own HF account (free token, separate quota) → your extra Spaces (e.g. CPU copy) → **Termux relay** on your phone (persistent queue, retries even when the browser is closed) → **Phone AI** in the browser (MusicGen-small, instrumental, experimental).
 - **Connections page:** HF token, relay URL, voice backend, extra backends, live status dots, one-line Termux setup.
 - **Generated songs saved in your library** (IndexedDB), downloadable even after the cloud link expires.
@@ -16,7 +17,9 @@ Free AI music studio in your browser: text-to-music, **built-in voice cloning**,
 
 ```mermaid
 flowchart LR
-  B[Browser<br/>GitHub Pages] -->|1| Z[ZeroGPU Space<br/>ACE-Step]
+  B[Browser<br/>GitHub Pages] -->|1| Z[ZeroGPU Space<br/>ACE-Step 1.5]
+  B -->|fallback| Z1[ACE-Step v1<br/>official Space]
+  B -->|2 your token| Z
   B -->|2 your token| Z
   B -->|3| X[Your extra Spaces<br/>CPU copy]
   B -->|4| R[Termux relay<br/>127.0.0.1:8787]
@@ -81,7 +84,7 @@ npm run relay     # run the relay without the ak command
 
 ## Credits
 
-[ACE-Step](https://github.com/ace-step/ACE-Step), [Seed-VC](https://github.com/Plachtaa/seed-vc) (GPL-3.0), [Demucs](https://github.com/facebookresearch/demucs), [Gradio](https://www.gradio.app/), [transformers.js](https://github.com/huggingface/transformers.js), [Vite](https://vite.dev/).
+[ACE-Step](https://github.com/ace-step/ACE-Step), [ACE-Step 1.5](https://github.com/ace-step/ACE-Step-1.5), [Seed-VC](https://github.com/Plachtaa/seed-vc) (GPL-3.0), [Demucs](https://github.com/facebookresearch/demucs), [Gradio](https://www.gradio.app/), [transformers.js](https://github.com/huggingface/transformers.js), [Vite](https://vite.dev/).
 
 ## License
 

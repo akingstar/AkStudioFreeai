@@ -3,7 +3,7 @@ import { loadRegistry } from './ak-registry.js'
 import { getSettings } from './ak-settings.js'
 import { relayHealth, relayEnqueue, relayWait } from './ak-relay-client.js'
 import { phoneGenerate } from './ak-phone-ai.js'
-import { SPACE_ID, SPACE_BASE, makeJob, argsFor, waitSeconds, normBase } from './ak-shared.js'
+import { SPACE_ID, SPACE_BASE, ACE_V1_SPACE_ID, ACE_V1_BASE, makeJob, argsFor, argsForV1, waitSeconds, normBase } from './ak-shared.js'
 
 const QUEUE_KEY = 'akstudio_pending_v2'
 const $ = id => document.getElementById(id)
@@ -48,6 +48,7 @@ function formJob() {
     lyrics: $('lyrics').value,
     language: $('language').value,
     duration: $('duration').value,
+    engine: $('engine')?.value || 'auto',
     instrumental: document.querySelector('.mode.active')?.dataset.mode === 'instrumental' || voice === 'Instrumental only',
     fast: window.AK_FAST !== false,
   })
@@ -62,6 +63,13 @@ async function clientFor(b) {
 async function runOn(b, j) {
   const { key, client } = await clientFor(b)
   try {
+    if (b.kind === 'v1') {
+      const res = await client.predict('/__call__', argsForV1(j))
+      const f = res.data[0]
+      const url = typeof f === 'string' ? f : f?.url
+      if (!url) throw new Error('ACE-Step v1 ne audio file nahi di')
+      return url
+    }
     const res = await client.predict('/generation_api', argsFor(j))
     const d = JSON.parse(res.data[0])
     if (d.status !== 'Generation Complete') throw new Error(d.status || 'Generation failed')
@@ -71,21 +79,30 @@ async function runOn(b, j) {
   } catch (e) { delete clients[key]; throw e }
 }
 
-async function buildChain() {
+async function buildChain(j = {}) {
   const s = getSettings()
-  const chain = [{ name: 'ZeroGPU', id: SPACE_ID, base: SPACE_BASE }]
-  if (s.hfToken) chain.push({ name: 'ZeroGPU (aapka HF account)', id: SPACE_ID, base: SPACE_BASE, token: s.hfToken })
-  for (const x of s.extraBackends || []) {
-    if (x?.url) chain.push({ name: x.name || 'Custom backend', id: normBase(x.url), base: normBase(x.url) })
+  const a15 = n => ({ name: n, id: SPACE_ID, base: SPACE_BASE, kind: '15' })
+  const v1 = n => ({ name: n, id: ACE_V1_SPACE_ID, base: ACE_V1_BASE, kind: 'v1' })
+  const primary = [a15('ACE-Step 1.5 (ZeroGPU)')]
+  const classic = [v1('ACE-Step v1 (official)')]
+  if (s.hfToken) {
+    primary.push({ ...a15('ACE-Step 1.5 (aapka HF)'), token: s.hfToken })
+    classic.push({ ...v1('ACE-Step v1 (aapka HF)'), token: s.hfToken })
   }
-  for (const r of await loadRegistry()) chain.push(r)
-  return chain
+  const extras = []
+  for (const x of s.extraBackends || []) {
+    if (x?.url) extras.push({ name: x.name || 'Custom backend', id: normBase(x.url), base: normBase(x.url), kind: '15' })
+  }
+  const registry = (await loadRegistry()).map(r => ({ ...r, kind: '15' }))
+  if (j.engine === 'v1') return [...classic, ...extras, ...registry]
+  if (j.engine === '15') return [...primary, ...extras, ...registry]
+  return [...primary, ...extras, ...registry, ...classic]
 }
 
 async function generateWithFallback(j) {
   let minWait = null
   const errors = []
-  for (const b of await buildChain()) {
+  for (const b of await buildChain(j)) {
     try {
       say(`${b.name} se generate ho raha hai... (30-90 sec)`)
       return { url: await runOn(b, j), via: b.name }
