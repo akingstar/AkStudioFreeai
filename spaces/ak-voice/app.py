@@ -4,10 +4,12 @@ API: /clone_song  (mixed.wav, converted_vocals.wav, instrumental.wav, report.jso
 Chalta hai: free CPU (slow) ya ZeroGPU (fast). Zero-shot — koi training nahi.
 
 Env knobs:
-  AK_CHUNK_SEC   (default 26)   per-chunk conversion window
-  AK_MAX_SEC     (default 300)  input song ka max length
-  AK_CROSSFADE   (default 0.08) chunk crossfade seconds
-  SEEDVC_REPO    (optional)     local seed-vc checkout path
+  AK_CHUNK_SEC        (default 26)   per-chunk conversion window
+  AK_MAX_SEC          (default 300)  input song ka max length
+  AK_CROSSFADE        (default 0.08) chunk crossfade seconds
+  AK_ALLOWED_ORIGINS  (default akingstar.github.io) extra CORS origins (comma separated)
+  AK_PREWARM          (default 1)    weights ko startup par cache karo
+  SEEDVC_REPO         (optional)     local seed-vc checkout path
 
 Seed-VC (GPL-3.0) https://github.com/Plachtaa/seed-vc | Demucs
 Sirf apni ya permission wali awaaz use karo.
