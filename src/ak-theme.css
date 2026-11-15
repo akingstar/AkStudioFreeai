@@ -68,3 +68,11 @@ input[type=range]{accent-color:var(--ak-a)}
   .generate-area{position:sticky;bottom:0;z-index:4;background:linear-gradient(180deg,transparent,#080808 28%);padding:14px 0 10px;margin-top:18px}
   .nav{padding:15px 12px}
 }
+
+/* 7) Premium polish */
+::selection{background:#8b5cf655;color:#fff}
+:focus-visible{outline:2px solid #8b5cf6cc;outline-offset:2px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#8b5cf6,#22d3ee);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
