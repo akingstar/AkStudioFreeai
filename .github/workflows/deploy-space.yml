@@ -31,15 +31,23 @@ jobs:
           set -euo pipefail
           if [ -z "${HF_TOKEN:-}" ]; then echo "::error::Secret HF_TOKEN missing (HF write token)"; exit 1; fi
           if [ -z "${HF_USERNAME:-}" ]; then echo "::error::Variable HF_USERNAME missing"; exit 1; fi
-          code=$(curl -s -o /tmp/create.json -w '%{http_code}' -X POST https://huggingface.co/api/repos/create \
-            -H "Authorization: Bearer $HF_TOKEN" -H 'Content-Type: application/json' \
-            -d "{\"type\":\"space\",\"name\":\"$SPACE_NAME\",\"sdk\":\"gradio\",\"private\":false}")
-          echo "create HTTP $code"; cat /tmp/create.json || true; echo
-          case "$code" in
-            200|201|409) ;;
-            *) echo "::error::Space create failed (HTTP $code)"; exit 1 ;;
-          esac
-          echo "SPACE_ID=$HF_USERNAME/$SPACE_NAME" >> "$GITHUB_ENV"
+          space_id="$HF_USERNAME/$SPACE_NAME"
+          code=$(curl -s -o /tmp/space.json -w '%{http_code}' "https://huggingface.co/api/spaces/$space_id" \
+            -H "Authorization: Bearer $HF_TOKEN")
+          if [ "$code" = "200" ]; then
+            echo "Space $space_id already exists"
+          else
+            code=$(curl -s -o /tmp/create.json -w '%{http_code}' -X POST https://huggingface.co/api/repos/create \
+              -H "Authorization: Bearer $HF_TOKEN" -H 'Content-Type: application/json' \
+              -d "{\"type\":\"space\",\"name\":\"$SPACE_NAME\",\"sdk\":\"gradio\",\"private\":false}")
+            echo "create HTTP $code"; cat /tmp/create.json || true; echo
+            case "$code" in
+              200|201|409) ;;
+              402) echo "::error::HF free accounts cannot create new Gradio/Docker Spaces; create $space_id once manually, then re-run"; exit 1 ;;
+              *) echo "::error::Space create failed (HTTP $code)"; exit 1 ;;
+            esac
+          fi
+          echo "SPACE_ID=$space_id" >> "$GITHUB_ENV"
 
       - name: Push Space files
         env:
