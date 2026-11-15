@@ -94,7 +94,7 @@ async function buildChain(j = {}) {
     if (x?.url) extras.push({ name: x.name || 'Custom backend', id: normBase(x.url), base: normBase(x.url), kind: '15' })
   }
   const registry = (await loadRegistry()).map(r => ({ ...r, kind: '15' }))
-  if (j.engine === 'v1') return [...classic, ...extras, ...registry]
+  if (j.engine === 'v1') return [...classic, ...primary, ...extras, ...registry]
   if (j.engine === '15') return [...primary, ...extras, ...registry]
   return [...primary, ...extras, ...registry, ...classic]
 }
@@ -129,6 +129,7 @@ async function generateWithFallback(j) {
   }
   const err = new Error(errors.join(' | '))
   err.wait = minWait
+  err.attempts = errors
   throw err
 }
 
@@ -174,9 +175,10 @@ async function start(j, fromQueue = false) {
   } catch (e) {
     queueJob(j, e.wait)
     const mins = e.wait ? Math.ceil(e.wait / 60) : 60
-    say(`Sab cloud backends limit par hain. Song queue me hai (~${mins} min baad auto-retry, page khula rakho). ` +
+    const tried = (e.attempts || []).map(s => String(s).split(':')[0].trim()).join(', ')
+    say(`Sab cloud backends limit par hain${tried ? ` (${tried})` : ''}. Song queue me hai (~${mins} min baad auto-retry, page khula rakho). ` +
         `Abhi chahiye to "Phone AI" try karo, ya Connections me apna HF token / Termux relay jodo. ` +
-        `Detail: ${String(e.message).slice(0, 140)}`)
+        `Detail: ${String(e.message).slice(0, 160)}`)
     actions.hidden = false
   } finally {
     busy = false
