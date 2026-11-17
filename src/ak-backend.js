@@ -3,7 +3,7 @@ import { loadRegistry } from './ak-registry.js'
 import { getSettings } from './ak-settings.js'
 import { relayHealth, relayEnqueue, relayWait } from './ak-relay-client.js'
 import { phoneGenerate } from './ak-phone-ai.js'
-import { SPACE_ID, SPACE_BASE, ACE_V1_SPACE_ID, ACE_V1_BASE, makeJob, argsFor, argsForV1, waitSeconds, normBase } from './ak-shared.js'
+import { SPACE_ID, SPACE_BASE, ACE_V1_SPACE_ID, ACE_V1_BASE, makeJob, argsFor, argsForV1, waitSeconds, normBase, isQuotaError } from './ak-shared.js'
 
 const QUEUE_KEY = 'akstudio_pending_v2'
 const $ = id => document.getElementById(id)
@@ -113,20 +113,41 @@ async function generateWithFallback(j) {
       if (w && (minWait === null || w < minWait)) minWait = w
     }
   }
-  // Sab cloud backends fail -> Termux relay (phone) agar chal raha ho
+  // Cloud errors ko relay errors se alag rakho
+  const cloudErrors = [...errors]
+
+  // Cloud quota exhausted -> pehle configured Termux relay try karo
   const s = getSettings()
   if (s.useRelay) {
-    const h = await relayHealth(s.relayUrl)
-    if (h?.ok) {
-      say('Cloud limit par hai. Termux relay (aapka phone) job queue karke retry karega...')
-      const id = await relayEnqueue(s.relayUrl, j)
-      const url = await relayWait(s.relayUrl, id, st => {
-        const nxt = st.nextAt ? Math.max(0, Math.round((st.nextAt - Date.now()) / 60000)) : 0
-        say(`Termux relay: ${st.status}${st.tries ? ` (try ${st.tries})` : ''}${nxt ? ` · agla retry ~${nxt} min` : ''} — page khula rakho ya baad me wapas aao.`)
-      })
-      return { url, via: 'Termux relay' }
+    try {
+      const h = await relayHealth(s.relayUrl)
+      if (h?.ok) {
+        say('Cloud quota full hai. Termux relay try ho raha hai...')
+        const id = await relayEnqueue(s.relayUrl, j)
+        const url = await relayWait(s.relayUrl, id, st => {
+          const nxt = st.nextAt ? Math.max(0, Math.round((st.nextAt - Date.now()) / 60000)) : 0
+          say(`Termux relay: ${st.status}${st.tries ? ` (try ${st.tries})` : ''}${nxt ? ` · agla retry ~${nxt} min` : ''}`)
+        })
+        return { url, via: 'Termux relay' }
+      }
+    } catch (e) {
+      errors.push(`Termux relay: ${String(e?.message || e)}`)
     }
   }
+
+  // FINAL FALLBACK: sab cloud backends quota-limited hon to isi phone par generate karo
+  const allCloudQuota = cloudErrors.length > 0 && cloudErrors.every(isQuotaError)
+  if (allCloudQuota) {
+    try {
+      say('☁️ Sab cloud quotas full hain. Ab aapke phone par local Phone AI start ho raha hai...')
+      const seconds = Math.min(30, Math.max(5, Number(j.duration) || 15))
+      const url = await phoneGenerate(j.caption || j.prompt, seconds, say)
+      return { url, via: 'Phone AI (local)', noClone: true }
+    } catch (e) {
+      errors.push(`Phone AI: ${String(e?.message || e)}`)
+    }
+  }
+
   const err = new Error(errors.join(' | '))
   err.wait = minWait
   err.attempts = errors
@@ -167,11 +188,11 @@ async function start(j, fromQueue = false) {
   actions.hidden = true
   label.textContent = 'Generating...'
   try {
-    const { url, via } = await generateWithFallback(j)
+    const { url, via, noClone = false } = await generateWithFallback(j)
     localStorage.removeItem(QUEUE_KEY)
     $('previewDescription').textContent = j.prompt
-    setSong(url, { job: j, via, queued: fromQueue })
-    say(`✓ Song ready (${via}).` + (j.caption.includes('clear natural lead vocals') ? ' Voice clone chal raha hai...' : ' Play karke suno.'))
+    setSong(url, { job: j, via, queued: fromQueue, noClone })
+    say(noClone ? '✓ Local Phone AI instrumental ready. Play karke suno.' : `✓ Song ready (${via}).` + (j.caption.includes('clear natural lead vocals') ? ' Voice clone chal raha hai...' : ' Play karke suno.'))
   } catch (e) {
     queueJob(j, e.wait)
     const mins = e.wait ? Math.ceil(e.wait / 60) : 60

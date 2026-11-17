@@ -127,6 +127,8 @@ app.innerHTML = `
 </div>
 `
 
+import('./studio-mode.js').catch(e => console.error('Studio mode:', e))
+
 const $ = id => document.getElementById(id)
 const notice = $('notice')
 let mode = 'custom'
