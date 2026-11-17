@@ -12,11 +12,16 @@ const DEFAULTS = {
   proApiKey: '',
   voiceSteps: 25,                      // Seed-VC diffusion steps
   localUrl: 'http://127.0.0.1:7861',   // local voice engine (quota fallback)
-  localMode: 'auto',                   // auto (cloud fail par) | first | off
+  localMode: 'auto',
+  workerUrl: 'https://akstudio-voice-fallback.akingstar205.workers.dev',
+  workerPin: '',                   // auto (cloud fail par) | first | off
 }
 
 export function getSettings() {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') } }
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || '{}')
+    return { ...DEFAULTS, ...saved, workerUrl: saved.workerUrl || DEFAULTS.workerUrl }
+  }
   catch { return { ...DEFAULTS } }
 }
 
