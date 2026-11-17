@@ -5,4 +5,4 @@ const ENV_SPACE = (() => {
   catch { return '' }
 })()
 
-export const VOICE_SPACE_DEFAULT = ENV_SPACE || 'Ashklyrics/AkStudioFreeai-voice'
+export const VOICE_SPACE_DEFAULT = (/voice/i.test(ENV_SPACE) ? ENV_SPACE : '') || 'Ashklyrics/AkStudioFreeai-voice'
