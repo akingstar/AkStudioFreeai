@@ -73,14 +73,23 @@ function render() {
       <label class="field-label" style="margin-top:8px">PRO API KEY</label>
       <input id="connProKey" class="text-input" type="password" autocomplete="off" value="${esc(s.proApiKey)}">
 
+
       <div class="divider"></div>
-      <div class="panel-head"><div><span class="step">04</span><b>Local engine (quota fallback)</b></div><span class="subtle">AAPKA PC</span></div>
+      <div class="panel-head"><div><span class="step">04</span><b>GitHub CPU Worker</b></div><span class="subtle">AUTOMATIC FALLBACK</span></div>
+      <p class="subtle clone-help">ZeroGPU quota khatam hone par existing voice clone ko GitHub Actions CPU par bhejne ke liye. Worker PIN yahan password ki tarah save hoga; GitHub token Cloudflare Worker mein hi rahega.</p>
+      <label class="field-label">WORKER URL</label>
+      <input id="connWorkerUrl" class="text-input" value="${esc(s.workerUrl || '')}" placeholder="https://akstudio-voice-fallback.akingstar205.workers.dev">
+      <label class="field-label" style="margin-top:8px">WORKER PIN</label>
+      <input id="connWorkerPin" class="text-input" type="password" autocomplete="off" value="${esc(s.workerPin || '')}">
+
+      <div class="divider"></div>
+      <div class="panel-head"><div><span class="step">05</span><b>Local engine (quota fallback)</b></div><span class="subtle">AAPKA PC</span></div>
       <p class="subtle clone-help">Cloud quota khatam? Apne PC par same Space chalao (CPU/GPU). Repo me <code>local/start-windows.ps1</code> ya <code>local/start-linux.sh</code> ek baar chalao — phir yahan URL auto-detect ho jayega. Free, unlimited, par CPU par slow.</p>
       <label class="field-label">LOCAL ENGINE URL</label>
       <input id="connLocal" class="text-input" value="${esc(s.localUrl)}" placeholder="http://127.0.0.1:7861">
       <label class="field-label" style="margin-top:8px">KAB USE KARE</label>
       <select id="connLocalMode">
-        <option value="auto" ${s.localMode === 'auto' ? 'selected' : ''}>Auto — cloud fail/quota khatam hone par</option>
+        <option value="auto" ${s.localMode === 'auto' ? 'selected' : ''}>Auto — cloud + GitHub CPU (no local)</option>
         <option value="first" ${s.localMode === 'first' ? 'selected' : ''}>Pehle local (cloud quota bachao)</option>
         <option value="only" ${s.localMode === 'only' ? 'selected' : ''}>Sirf local (offline mode)</option>
         <option value="off" ${s.localMode === 'off' ? 'selected' : ''}>Off — sirf cloud</option>
@@ -91,7 +100,7 @@ function render() {
       <div class="subtle" id="connLocalStatus">Test dabao.</div>
 
       <div class="divider"></div>
-      <div class="panel-head"><div><span class="step">05</span><b>Extra backends</b></div></div>
+      <div class="panel-head"><div><span class="step">06</span><b>Extra backends</b></div></div>
       <p class="subtle clone-help">Apne duplicate kiye hue Spaces (jaise CPU Space). Har line: <code>Naam | https://...hf.space</code></p>
       <textarea id="connExtra" class="prompt" style="min-height:80px">${esc((s.extraBackends || []).map(x => `${x.name} | ${x.url}`).join('\n'))}</textarea>
       <button class="generate" id="connSave" type="button">✦ Save settings</button>
@@ -126,6 +135,8 @@ function render() {
       voiceSteps: Math.min(50, Math.max(4, Number($('connSteps').value) || 25)),
       proApiUrl: $('connProUrl').value.trim(),
       proApiKey: $('connProKey').value.trim(),
+      workerUrl: $('connWorkerUrl').value.trim().replace(/\/+$/, ''),
+      workerPin: $('connWorkerPin').value.trim(),
       localUrl: $('connLocal').value.trim().replace(/\/+$/, '') || 'http://127.0.0.1:7861',
       localMode: $('connLocalMode').value,
       extraBackends: extra,

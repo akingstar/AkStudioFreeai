@@ -195,6 +195,50 @@ async function runPro({ source, ref, separate, pitch }, onStatus, onProgress) {
   }
 }
 
+
+async function runActionsVoice({ source, pitch }, onStatus, onProgress) {
+  const { workerUrl, workerPin } = getSettings()
+  if (!workerUrl || !workerPin) throw new Error('GitHub CPU Worker URL/PIN configured nahi hai.')
+  const base = workerUrl.replace(/\/+$/, '')
+  const headers = { 'Content-Type': 'application/json', 'x-pin': workerPin }
+  const audio = await b64(source)
+  if (!audio || audio.length > 28000000) throw new Error('Audio upload limit 20 MB hai.')
+  onStatus?.('GitHub Actions CPU Seed-VC par upload ho raha hai...')
+  const start = await fetch(base + '/start', {
+    method: 'POST', headers,
+    body: JSON.stringify({
+      audio_base64: audio,
+      audio_type: source?.type || 'audio/mpeg',
+      voice: 'me',
+      pitch: Number(pitch) || 0,
+      quality: 'balanced'
+    })
+  })
+  if (!start.ok) throw new Error('GitHub CPU Worker start HTTP ' + start.status)
+  const started = await start.json()
+  if (!started.job) throw new Error(started.error || 'GitHub CPU job start nahi hua.')
+  const job = started.job
+  const deadline = Date.now() + CONVERT_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 8000))
+    const r = await fetch(base + '/status?job=' + encodeURIComponent(job), { headers, cache: 'no-store' })
+    if (!r.ok) throw new Error('GitHub CPU status HTTP ' + r.status)
+    const state = await r.json()
+    onProgress?.({ progress: state.state === 'done' ? 0.95 : 0.35, desc: 'GitHub CPU: ' + (state.state || 'waiting') })
+    if (state.state === 'failed') throw new Error('GitHub Actions CPU voice job failed.')
+    if (state.state === 'done') {
+      onStatus?.('CPU voice ready — result download ho raha hai...')
+      const out = await fetch(base + '/download?job=' + encodeURIComponent(job), { headers })
+      if (!out.ok) throw new Error('GitHub CPU download HTTP ' + out.status)
+      const mixed = await out.blob()
+      if (!mixed.size) throw new Error('GitHub CPU ne empty audio diya.')
+      return { mixed, vocals: null, instrumental: null, report: null, via: 'GitHub Actions CPU Seed-VC' }
+    }
+    onStatus?.('GitHub Actions CPU voice conversion: ' + (state.state || 'waiting') + '...')
+  }
+  throw new Error('GitHub CPU job timeout. Job ID: ' + job)
+}
+
 // ---------- Public API ----------
 async function runLocal({ source, ref, separate, pitch, steps }, onStatus, onProgress) {
   const url = getSettings().localUrl
@@ -230,10 +274,11 @@ export async function convertVoice({ source, ref, separate = true, pitch = 0, st
   if (s.localMode !== 'only') {
     if (s.voiceMode === 'official' || s.useOfficial) chain.push({ name: 'Official Seed-VC', run: runOfficial })
     chain.push({ name: 'Mera Voice Space', run: runOwnSpace })
+    if (s.workerUrl && s.workerPin) chain.push({ name: 'GitHub Actions CPU', run: runActionsVoice })
     // Apna Space down/quota par ho to official Seed-VC bhi try karo (acapella only)
     if (s.voiceMode !== 'official') chain.push({ name: 'Official Seed-VC', run: runOfficial })
   }
-  if (localReady && s.localMode !== 'first') chain.push({ name: 'Local engine', run: runLocal })
+  if (localReady && s.localMode === 'only') chain.push({ name: 'Local engine', run: runLocal })
   if (s.proApiUrl) chain.push({ name: 'Pro API', run: runPro })
   if (!chain.length) {
     if (s.localMode === 'only') throw new Error(`Sirf-local mode on hai par local engine ${s.localUrl} par nahi chal raha — local\\start-windows.ps1 chalao (ya Connections me mode badlo).`)
