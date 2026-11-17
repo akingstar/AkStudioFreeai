@@ -11,12 +11,31 @@ echo "HF user: $WHO"
 case "$1" in
   voice)
     NAME="AkStudioFreeai-voice"
-    curl -s -X POST https://huggingface.co/api/repos/create -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
-      -d "{\"type\":\"space\",\"name\":\"$NAME\",\"sdk\":\"gradio\",\"private\":false}" | head -c 200; echo
+    CREATE="$(curl -sS -X POST https://huggingface.co/api/repos/create \
+      -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
+      -d "{\"type\":\"space\",\"name\":\"$NAME\",\"sdk\":\"gradio\",\"private\":false}")"
+    echo "SPACE CREATE: $CREATE"
+
+    echo "ZeroGPU hardware request..."
+    HW_RESP="$(curl -sS -w '\n%{http_code}' -X POST \
+      "https://huggingface.co/api/spaces/$WHO/$NAME/hardware" \
+      -H "Authorization: Bearer $T" \
+      -H "Content-Type: application/json" \
+      -d '{"flavor":"zero-a10g"}')"
+    HW_CODE="${HW_RESP##*$'\n'}"
+    HW_BODY="${HW_RESP%$'\n'*}"
+    echo "HARDWARE HTTP: $HW_CODE"
+    echo "HARDWARE RESPONSE: $HW_BODY"
+    case "$HW_CODE" in
+      2??) echo "✓ ZeroGPU request accepted." ;;
+      *) echo "✗ ZeroGPU request failed. HF account eligibility/permission check karo."; exit 1 ;;
+    esac
+
     TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
     export GIT_TERMINAL_PROMPT=0
     git clone -q "https://$WHO:$T@huggingface.co/spaces/$WHO/$NAME" "$TMP/s" || { echo "Clone fail"; exit 1; }
     cp -r "$DIR/spaces/ak-voice/." "$TMP/s/"
+    find "$TMP/s" -maxdepth 1 -type f -name "*.bak-*" -delete
     cd "$TMP/s" && git add -A && git -c user.name=akstudio -c user.email=akstudio@local commit -qm "Deploy AkStudio voice clone" && git push -q origin HEAD \
       && echo "✓ Deploy ho gaya. Build 5-15 min lagta hai: https://huggingface.co/spaces/$WHO/$NAME" \
       && echo "  Site ke Connections page par 'Mera Voice Space ID' = $WHO/$NAME rakho." \
