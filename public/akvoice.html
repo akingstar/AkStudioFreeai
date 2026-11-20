@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AkVoice Clone</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b10;--card:#15151d;--line:#262633;--fg:#ececf3;--mut:#9a9ab0;--acc:#8b5cf6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:18px}
+main{max-width:560px;margin:auto}h1{font-size:22px;margin:0 0 4px}p.s{color:var(--mut);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 4px}
+select,input[type=file],input[type=range]{width:100%}
+select,input[type=file]{background:#0f0f16;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px}
+button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-size:16px;font-weight:600}
+button:disabled{opacity:.5}.row{display:flex;gap:10px}.row>div{flex:1}
+pre{white-space:pre-wrap;color:var(--mut);font-size:12px;margin:8px 0 0}
+audio{width:100%;margin-top:6px}a{color:#c4b5fd}code{background:#0f0f16;padding:2px 6px;border-radius:6px}
+.pill{display:inline-block;padding:4px 10px;border-radius:99px;background:#2a1a1a;color:#fca5a5;font-size:13px}
+.pill.ok{background:#12261a;color:#86efac}
+</style></head><body><main>
+<!-- akvoice-page-v1 -->
+<h1>AkVoice Clone</h1>
+<p class="s">Gaana apni awaaz (AkVoice) me convert karo. Free Kaggle GPU, aapke phone ke Termux se chalta hai.</p>
+<div class="card"><span id="srv" class="pill">Server check ho raha hai...</span>
+<p id="help" class="s" hidden>Termux me chalao: <code>akweb start</code>, phir ye page reload karo. Chrome "local network" permission maange to Allow karo.</p></div>
+<div class="card">
+<label>Gaana (mp3, wav, m4a, flac)</label><input id="file" type="file" accept="audio/*">
+<div class="row"><div><label>Pitch</label><select id="pitch"><option value="auto">Auto</option><option value="0">0</option><option value="12">+12</option><option value="-12">-12</option><option value="5">+5</option><option value="-5">-5</option></select></div>
+<div><label>Model</label><select id="ep"><option value="300">300 epoch</option><option value="250">250 epoch</option></select></div></div>
+<label>Index rate: <span id="irv">0.8</span></label><input id="ir" type="range" min="0" max="1" step="0.1" value="0.8">
+<button id="go">Clone karo</button><pre id="st"></pre><pre id="log"></pre>
+</div>
+<div class="card" id="out" hidden>
+<b>Gaana + clone awaaz</b><audio id="am" controls></audio><a id="dm" download="akvoice_mix.mp3">Download mp3</a>
+<br><br><b>Sirf clone awaaz</b><audio id="av" controls></audio><a id="dv" download="akvoice_vocals.wav">Download wav</a>
+</div></main>
+<script>
+var BASE='http://127.0.0.1:8788',ready=false;
+function $(i){return document.getElementById(i)}
+function say(t){$('st').textContent=t}
+$('ir').oninput=function(){$('irv').textContent=this.value};
+function health(){
+ fetch(BASE+'/api/health',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){
+  ready=true;$('srv').textContent='Server chal raha hai'+(j.busy?' (busy, line: '+j.queue+')':'');$('srv').className='pill ok';$('help').hidden=true;
+ }).catch(function(){ready=false;$('srv').textContent='Server band hai';$('srv').className='pill';$('help').hidden=false})}
+health();setInterval(health,8000);
+function show(id){
+ Promise.all([fetch(BASE+'/files/'+id+'/akclone_mix.mp3').then(function(r){return r.blob()}),
+              fetch(BASE+'/files/'+id+'/akclone_vocals.wav').then(function(r){return r.blob()})]).then(function(b){
+  var m=URL.createObjectURL(b[0]),v=URL.createObjectURL(b[1]);
+  $('am').src=m;$('av').src=v;$('dm').href=m;$('dv').href=v;$('out').hidden=false;$('go').disabled=false;say('Ho gaya!');
+ }).catch(function(e){say('Result download fail: '+e);$('go').disabled=false})}
+function poll(id){var t=setInterval(function(){
+ fetch(BASE+'/api/akclone/'+id,{cache:'no-store'}).then(function(r){return r.json()}).then(function(s){
+  $('log').textContent=s.log||'';
+  if(s.status==='queued'){say('Line me hai ('+s.queuePos+')...')}
+  else if(s.status==='running'){say('Kaggle GPU par ban raha hai... '+Math.round(s.elapsed/60)+' min (kul 8-15 min lagte hain)')}
+  else if(s.status==='done'){clearInterval(t);say('Result la raha hoon...');show(id)}
+  else if(s.status==='failed'){clearInterval(t);say('Fail: '+s.error);$('go').disabled=false}
+ }).catch(function(){say('Server se connect nahi ho raha, dobara koshish...')})},4000)}
+$('go').onclick=function(){
+ var f=$('file').files[0];
+ if(!f){say('Pehle gaana chuno');return}
+ if(!ready){say('Pehle Termux me akweb start chalao');return}
+ $('go').disabled=true;$('out').hidden=true;say('Upload ho raha hai...');
+ var q=new URLSearchParams({pitch:$('pitch').value,epochs:$('ep').value,ir:$('ir').value,name:f.name});
+ fetch(BASE+'/api/akclone?'+q.toString(),{method:'POST',headers:{'Content-Type':f.type||'application/octet-stream'},body:f})
+ .then(function(r){return r.json()}).then(function(j){if(j.error){say(j.error);$('go').disabled=false;return}poll(j.id)})
+ .catch(function(e){say('Upload fail: '+e);$('go').disabled=false})};
+</script></body></html>
